@@ -1,4 +1,5 @@
 #include <string>
+#include <vector>
 
 using namespace std;
 
@@ -10,8 +11,8 @@ public:
     string method;
     string line1;
     string host;
-    string body;
-    Client(string & target):body(target) {
+    vector<char> body;
+    Client(string & target):body(target.begin(), target.end()) {
         uid = init_uid;
         init_uid++;
         size_t pos = target.find(' ');

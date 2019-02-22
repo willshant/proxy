@@ -81,8 +81,8 @@ public:
         memset(&host_info, 0, sizeof(host_info));
         host_info.ai_family   = AF_UNSPEC;
         host_info.ai_socktype = SOCK_STREAM;
-        cout << "host name = "  << hostname.c_str() << endl;
-        cout << "port" << port << endl;
+        // cout << "host name = "  << hostname.c_str() << endl;
+        // cout << "port" << port << endl;
         status = getaddrinfo(hostname.c_str(), port, &host_info, &host_info_list);
         if (status != 0) {
             cerr << "Error: cannot get address info for host" << endl;
@@ -119,9 +119,16 @@ string recvClientAll(int fd) {
     string res;
     while(true) {
         memset(buffer, 0, 4096);
-        recv(fd, buffer, 4096, 0);
+        cout << "in receive!!" << endl;
+        int receive = recv(fd, buffer, 4096, 0);
+        if (receive == 0) {
+            break;
+        }
+        cout << receive;
+        // cout << "recv" << endl;
         string temp(buffer);
         res += temp;
+        // cout << temp << endl;
         if (size_t pos = res.find("\r\n\r\n") != string::npos) {
             break;
         }
@@ -129,22 +136,50 @@ string recvClientAll(int fd) {
     return res;
 }
 
+// string recvClientAll(int fd) {
+//     char buffer[4096];
+//     string res;
+//     while(true) {
+//         memset(buffer, 0, 4096);
+//         recv(fd, buffer, 4096, 0);
+//         string temp(buffer);
+//         res += temp;
+//         if (size_t pos = res.find("\r\n\r\n") != string::npos) {
+//             size_t pos1 = res.find("Content-Length:");
+//             size_t pos2 = res.find("Transfer-Encoding:");
+//             if (pos1 != string::npos || pos2 != string::npos){
+//                 size_t pos3 = res.find("\r\n\r\n", pos);
+//                 if (pos3 != string::npos){
+//                     break;
+//                 }
+//             }
+//             else {
+//                 break;
+//             }
+//         }
+//         else {
+//             continue;
+//         }
+//     }
+//     return res;
+// }
 
 
 vector<char> recvAll(int fd) {
 //    cout << "enter" << endl;
     
-    vector<char> buffer(1024, 0);
+    vector<char> buffer(4096, 0);
     int index = 0;
     int i = 1;
     while (true) {
-        int byte_read = recv(fd, &buffer.data()[index] , 1024 - index, 0);
+        int byte_read = recv(fd, &buffer.data()[index] , (4096 * i) - index, 0);
+        cout << "byte read: " << byte_read << endl;
         if (byte_read == 0) {
             break;
         }
         index += byte_read;
-        if (index == 1024 * i) {
-            buffer.resize(1024 * (++i), 0);
+        if (index == 4096 * i) {
+            buffer.resize(4096 * (++i), 0);
         } 
     }
     return buffer;
@@ -155,6 +190,11 @@ void sendAll(int fd, vector<char> & target, int size){
     while(sum != size){
 //        cout << "enter" << endl;
         int i = send(fd, target.data() + sum, size-sum, 0);
+        if (i == -1) {
+            cout << "error in send" << endl;
+            break;
+        }
+        cout << "in send all: " << endl;
         cout << i << endl;
         sum += i;
     }
