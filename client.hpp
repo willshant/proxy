@@ -117,12 +117,58 @@ public:
                 time_t now = time(0);
                 expiration_time = now + age;
             }
-            // else if (size_t pos = header.find("Expires") != string::npos){
-            //     size_t pos1 = header.find(" ", pos);
-            //     size_t pos2 = header.find("\r\n", pos);
-            //     time_t x = 0;
-            //     //scan_httpdate(header.substr(pos1 + 1, pos2 - pos1 - 1).c_str, &x);
-            // }
+            else if (size_t pos = header.find("Expires") != string::npos){
+                size_t pos1 = header.find(" ", pos); // after Expires:
+                size_t pos2 = header.find("\r\n", pos); // the end of the line
+                pos1 = header.find(" ", pos1); // after week string
+                string temp = header.substr(pos1 + 1, pos2 - pos1); // day month year time GMT
+                size_t pos_ws = temp.find(" "); // whitespace after day
+                vector<string> time;
+                while (pos_ws != string::npos){
+                    string tem = temp.substr(0, pos_ws);
+                    time.push_back(tem);
+                    temp = temp.substr(pos_ws + 1, string::npos);
+                    pos_ws = temp.find(" ");
+                }
+                if (time[1] == "Jan"){
+                    time[1] = "01"；
+                }
+                else if (time[1] == "Feb"){
+                    time[1] = "02";
+                }
+                else if (time[1] == "Mar"){
+                    time[1] = "03";
+                }
+                else if (time[1] == "Apr"){
+                    time[1] = "04";
+                }
+                else if (time[1] == "May"){
+                    time[1] = "05";
+                }
+                else if (time[1] == "Jun"){
+                    time[1] = "06";
+                }
+                else if (time[1] == "Jul"){
+                    time[1] = "07";
+                }
+                else if (time[1] == "Aug"){
+                    time[1] = "08";
+                }
+                else if (time[1] == "Sep"){
+                    time[1] = "09";
+                }
+                else if (time[1] == "Oct"){
+                    time[1] = "10";
+                }
+                else if (time[1] == "Nov"){
+                    time[1] = "11";
+                }
+                else {
+                    time[1] = "12";
+                }
+                time_t x = 0;
+                //scan_httpdate(header.substr(pos1 + 1, pos2 - pos1 - 1).c_str, &x);
+            }
 
             if_cache = true;
         }
