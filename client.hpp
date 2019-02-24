@@ -113,7 +113,8 @@ public:
                 while (isdigit(header[pos1])){
                     pos1++;
                 }
-                int age = atoi(header.substr(pos2, pos1 - pos2 - 1).c_str());
+                time_t age = atoi(header.substr(pos2, pos1 - pos2 - 1).c_str());
+                cout << "atoi result " << age << endl;
                 time_t now = time(0);
                 expiration_time = now + age;
             }
