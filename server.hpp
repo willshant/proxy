@@ -355,6 +355,10 @@ void MethodGet(int client_fd, int server_fd, Client & client) {
     cout << "url: " << response_class.url << endl << "if cache: " << response_class.if_cache << endl
         << "expiration_time: " << response_class.expiration_time << endl << "if validate: " << response_class.if_validate
         << endl << response_class.content.data() << endl;
+        // test time
+        char loca[256];
+        strftime(loca, sizeof(loca), "%Y-%m-%d %H:%M:%S", localtime(&loca));
+        cout << "local time" << loca << endl;
 
     sendAll(client_fd, response, response.size());
 }
