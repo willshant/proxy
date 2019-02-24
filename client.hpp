@@ -4,6 +4,7 @@
 #include <vector>
 #include<iostream>
 #include <ctime>
+#include <unordered_map>
 
 using namespace std;
 
@@ -73,10 +74,11 @@ public:
     string url;
     // string line1;
     bool if_cache;
+    bool if_nocache;
     time_t expiration_time;
     bool if_validate;
     vector<char> content;
-    Response(vector<char> & response_content, string & url): url(url), if_cache(false), 
+    Response(vector<char> & response_content, string & url): url(url), if_cache(false), if_nocache(false), 
         expiration_time(time(0)), if_validate(false), content(response_content){
         char * header_end = strstr(response_content.data(), "\r\n\r\n");
         char temp[8192];
@@ -90,9 +92,11 @@ public:
                 if_cache = false;
                 return;
             }
-            if(header.find("must-revalidate", pos_cache) != string::npos || 
-                    header.find("proxy-revalidate", pos_cache) != string::npos || 
-                    header.find("no-cache", pos_cache) != string::npos ){
+            if (header.find("no-cache", pos_cache) != string::npos ) {
+                if_nocache = true;
+            }
+            else if(header.find("must-revalidate", pos_cache) != string::npos || 
+                    header.find("proxy-revalidate", pos_cache) != string::npos ){
                 if_validate = true;
             }
             if (size_t pos = header.find("s-maxage", pos_cache) != string::npos){

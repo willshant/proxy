@@ -11,6 +11,8 @@
 #include "client.hpp"
 #include <thread>
 
+unordered_map<string, Response> cache;
+
 using namespace std;
 
 // class 
@@ -356,9 +358,11 @@ void MethodGet(int client_fd, int server_fd, Client & client) {
         << "expiration_time: " << response_class.expiration_time << endl << "if validate: " << response_class.if_validate
         << endl << response_class.content.data() << endl;
         // test time
-        char loca[256];
-        strftime(loca, sizeof(loca), "%Y-%m-%d %H:%M:%S", localtime(&loca));
-        cout << "local time" << loca << endl;
+    if (response_class.if_cache) {
+        cache.insert(make_pair(response_class.url, response_class));
+    }
+    
+    
 
     sendAll(client_fd, response, response.size());
 }
