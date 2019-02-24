@@ -130,43 +130,47 @@ public:
                     temp = temp.substr(pos_ws + 1, string::npos);
                     pos_ws = temp.find(" ");
                 }
-                if (time[1] == "Jan"){
-                    time[1] = "01"；
-                }
-                else if (time[1] == "Feb"){
-                    time[1] = "02";
-                }
-                else if (time[1] == "Mar"){
-                    time[1] = "03";
-                }
-                else if (time[1] == "Apr"){
-                    time[1] = "04";
-                }
-                else if (time[1] == "May"){
-                    time[1] = "05";
-                }
-                else if (time[1] == "Jun"){
-                    time[1] = "06";
-                }
-                else if (time[1] == "Jul"){
-                    time[1] = "07";
-                }
-                else if (time[1] == "Aug"){
-                    time[1] = "08";
-                }
-                else if (time[1] == "Sep"){
-                    time[1] = "09";
-                }
-                else if (time[1] == "Oct"){
-                    time[1] = "10";
-                }
-                else if (time[1] == "Nov"){
-                    time[1] = "11";
-                }
-                else {
-                    time[1] = "12";
-                }
-                time_t x = 0;
+                // if (time[1] == "Jan"){
+                //     time[1] = "01"；
+                // }
+                // else if (time[1] == "Feb"){
+                //     time[1] = "02";
+                // }
+                // else if (time[1] == "Mar"){
+                //     time[1] = "03";
+                // }
+                // else if (time[1] == "Apr"){
+                //     time[1] = "04";
+                // }
+                // else if (time[1] == "May"){
+                //     time[1] = "05";
+                // }
+                // else if (time[1] == "Jun"){
+                //     time[1] = "06";
+                // }
+                // else if (time[1] == "Jul"){
+                //     time[1] = "07";
+                // }
+                // else if (time[1] == "Aug"){
+                //     time[1] = "08";
+                // }
+                // else if (time[1] == "Sep"){
+                //     time[1] = "09";
+                // }
+                // else if (time[1] == "Oct"){
+                //     time[1] = "10";
+                // }
+                // else if (time[1] == "Nov"){
+                //     time[1] = "11";
+                // }
+                // else {
+                //     time[1] = "12";
+                // }
+                string toTrans = time[0] + " " + time[1] + " " + time[2] + " " + time[3];
+                struct tm timest;
+                strptime(toTrans.c_str(), "%d %b %Y %H:%M:%S", &timest);
+
+                expiration_time = mktime(&timest);
                 //scan_httpdate(header.substr(pos1 + 1, pos2 - pos1 - 1).c_str, &x);
             }
 
