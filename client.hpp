@@ -16,6 +16,7 @@ public:
     string method;
     string url;
     string host;
+    string header;
     vector<char> content;
     string port;
     string httpVersion;
@@ -31,7 +32,6 @@ public:
         strncpy(temp_line, request_content.data(), pos - request_content.data());
         temp_line[pos - request_content.data()] = 0;
         string line1(temp_line);
-        cout << "line1" << line1 << endl;
         size_t pos_1 = line1.find(" ");
         size_t pos_2 = line1.find(" ", pos_1 + 1);
         url = line1.substr(pos_1 + 1, pos_2 - pos_1 -1);
@@ -75,11 +75,20 @@ public:
     // string line1;
     bool if_cache;
     bool if_nocache;
-    time_t expiration_time;
     bool if_validate;
+    time_t expiration_time;
+    time_t age;
+    string last_modified;
+    string etag;
     vector<char> content;
-    Response(vector<char> & response_content, string & url): url(url), if_cache(false), if_nocache(false), 
-        expiration_time(time(0)), if_validate(false), content(response_content){
+    Response(vector<char> & response_content, string & url): 
+        url(url), 
+        if_cache(false), 
+        if_nocache(false), 
+        if_validate(false), 
+        expiration_time(time(0)), 
+        age(0), 
+        content(response_content) {
         char * header_end = strstr(response_content.data(), "\r\n\r\n");
         char temp[8192];
         strncpy(temp, response_content.data(), header_end - response_content.data());
@@ -91,6 +100,13 @@ public:
                 header.find("private", pos_cache) != string::npos){
                 if_cache = false;
                 return;
+            }
+            size_t pos_age;
+            if ((pos_age = header.find("Age: ")) != string::npos) {
+                pos_age += 5;
+                size_t pos_end = header.find("\r\n", pos_age);
+                time_t age = atoi(header.substr(pos_age, pos_end - pos_age).c_str());
+                this->age = age;
             }
             if (header.find("no-cache", pos_cache) != string::npos ) {
                 if_nocache = true;
@@ -108,7 +124,7 @@ public:
                 }
                 int age = atoi(header.substr(pos2, pos1 - pos2).c_str());
                 time_t now = time(0);
-                expiration_time = now + age;
+                expiration_time = now + age - this->age;
             }
             else if (size_t pos = header.find("max-age", pos_cache) != string::npos){
                 size_t pos1 = header.find("=", pos);
@@ -118,9 +134,8 @@ public:
                     pos1++;
                 }
                 time_t age = atoi(header.substr(pos2, pos1 - pos2).c_str());
-                cout << "atoi result " << age << endl;
                 time_t now = time(0);
-                expiration_time = now + age;
+                expiration_time = now + age - this->age;
             }
             else if (size_t pos = header.find("Expires") != string::npos){
                 size_t pos1 = header.find(" ", pos); // after Expires:
@@ -141,6 +156,19 @@ public:
 
                 expiration_time = mktime(&timest);
                 //scan_httpdate(header.substr(pos1 + 1, pos2 - pos1 - 1).c_str, &x);
+            }
+            
+            size_t pos_etag;
+            if ((pos_etag = header.find("Etag: ")) != string::npos) {
+                pos_etag += 6;
+                size_t pos_end = header.find("\r\n", pos_etag);
+                etag = header.substr(pos_etag, pos_end - pos_etag);
+            }
+            size_t pos_lastmod;
+            if ((pos_lastmod = header.find("Last-Modified: ")) != string::npos) {
+                pos_lastmod += 15;
+                size_t pos_end = header.find("\r\n", pos_lastmod);
+                last_modified = header.substr(pos_lastmod, pos_end - pos_lastmod);
             }
 
             if_cache = true;

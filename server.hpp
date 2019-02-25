@@ -15,6 +15,23 @@ unordered_map<string, Response> cache;
 
 using namespace std;
 
+vector<char> CreateRequest(unordered_map<string, Response>::const_iterator it, Client & client, bool EtagOrMod){
+    string toAdd;
+    if (EtagOrMod == true){
+        toAdd = "If-None-Match: " + it->second.etag + "\r\n";
+    }
+    else {
+        toAdd = "If-Modified-Since: " + it->second.last_modified + "\r\n";
+    }
+    vector<char> rev = client.content;
+    char * pos = strstr(rev.data(), "\r\n\r\n");
+    vector<char>::iterator it1 = rev.begin() + (pos - rev.data());
+    vector<char> temp(toAdd.begin(), toAdd.end());
+    rev.insert(it1, temp.begin(), temp.end());
+    cout << endl << "new validate header: " << rev.data() << endl << endl;
+    return rev;
+}
+
 // class 
 class Server {
 public:
@@ -337,6 +354,26 @@ void MethodPost(int server_fd, int client_fd, Client & client){
 }
 
 void MethodGet(int client_fd, int server_fd, Client & client) {
+    unordered_map<string, Response>::const_iterator it = cache.find(client.url);
+    if (it != cache.end()) {
+        if (it->second.if_nocache || it->second.expiration_time < time(0)) {
+            if (!it->second.etag.empty()) {
+                vector<char> newReq = CreateRequest(it, client, true);
+            }
+            else if (!it->second.last_modified.empty()) {
+                vector<char> newReq = CreateRequest(it, client, false);
+            }
+            // else send all
+            // send original request to server
+        }
+        else {
+            // send response and return
+        }
+    }
+    else {
+        // send original request to server
+    }
+
     sendAll(server_fd, client.content, client.content.size());
     int exitflag = 1;
     vector<char> response = recvHeader(server_fd);
@@ -356,9 +393,14 @@ void MethodGet(int client_fd, int server_fd, Client & client) {
     Response response_class(response, client.url);
     cout << "url: " << response_class.url << endl << "if cache: " << response_class.if_cache << endl
         << "expiration_time: " << response_class.expiration_time << endl << "if validate: " << response_class.if_validate
-        << endl << response_class.content.data() << endl;
+        << endl << "age: " << response_class.age << endl << "last_modified: " << response_class.last_modified << endl
+        << "etag: " << response_class.etag << endl << response_class.content.data() << endl;
         // test time
+    
     if (response_class.if_cache) {
+        if (cache.find(response_class.url) != cache.end()) {
+            cache.erase(response_class.url);
+        }
         cache.insert(make_pair(response_class.url, response_class));
     }
     
