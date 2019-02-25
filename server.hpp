@@ -25,7 +25,7 @@ vector<char> CreateRequest(unordered_map<string, Response>::const_iterator it, C
     }
     vector<char> rev = client.content;
     char * pos = strstr(rev.data(), "\r\n\r\n");
-    vector<char>::iterator it1 = rev.begin() + (pos - rev.data());
+    vector<char>::iterator it1 = rev.begin() + (pos + 2 - rev.data());
     vector<char> temp(toAdd.begin(), toAdd.end());
     rev.insert(it1, temp.begin(), temp.end());
     cout << endl << "new validate header: " << rev.data() << endl << endl;
@@ -217,23 +217,23 @@ vector<char> parseHeader(int fd, vector<char> & client_request_header) {
 }
 
 
-vector<char> recvAll(int fd) {
-    vector<char> buffer(4096, 0);
-    int index = 0;
-    int i = 1;
-    while (true) {
-        int byte_read = recv(fd, &buffer.data()[index] , (4096 * i) - index, 0);
-        cout << "byte read: " << byte_read << endl;
-        if (byte_read == 0) {
-            break;
-        }
-        index += byte_read;
-        if (index == 4096 * i) {
-            buffer.resize(4096 * (++i), 0);
-        } 
-    }
-    return buffer;
-}
+// vector<char> recvAll(int fd) {
+//     vector<char> buffer(4096, 0);
+//     int index = 0;
+//     int i = 1;
+//     while (true) {
+//         int byte_read = recv(fd, &buffer.data()[index] , (4096 * i) - index, 0);
+//         cout << "byte read: " << byte_read << endl;
+//         if (byte_read == 0) {
+//             break;
+//         }
+//         index += byte_read;
+//         if (index == 4096 * i) {
+//             buffer.resize(4096 * (++i), 0);
+//         } 
+//     }
+//     return buffer;
+// }
 
 void sendAll(int fd, vector<char> & target, int size){
     int sum = 0;
@@ -354,33 +354,39 @@ void MethodPost(int server_fd, int client_fd, Client & client){
 }
 
 void MethodGet(int client_fd, int server_fd, Client & client) {
-    unordered_map<string, Response>::const_iterator it = cache.find(client.url);
+    unordered_map<string, Response>::iterator it = cache.find(client.url);
     if (it != cache.end()) {
+        cout << "whether cached" << endl;
         if (it->second.if_nocache || it->second.expiration_time < time(0)) {
+            cout << "need revalidation" << endl;
             if (!it->second.etag.empty()) {
+                cout << "add etag" << endl;
                 vector<char> newReq = CreateRequest(it, client, true);
+                sendAll(server_fd, newReq, newReq.size());
             }
             else if (!it->second.last_modified.empty()) {
+                cout << "add last mod" << endl;
                 vector<char> newReq = CreateRequest(it, client, false);
+                sendAll(server_fd, newReq, newReq.size());
             }
-            // else send all
-            // send original request to server
+            else {
+                // send original request to server
+                sendAll(server_fd, client.content, client.content.size());
+            }
         }
         else {
             // send response and return
+            sendAll(server_fd, it->second.content, it->second.content.size());
         }
     }
     else {
         // send original request to server
+        sendAll(server_fd, client.content, client.content.size());
     }
 
-    sendAll(server_fd, client.content, client.content.size());
-    int exitflag = 1;
+    // sendAll(server_fd, client.content, client.content.size());
     vector<char> response = recvHeader(server_fd);
     cout << response.data() << endl;
-    if(exitflag == 0){
-        cout << "strange behavior of new accept" << endl;
-    }
     vector<char> response_body = parseHeader(server_fd, response);
     cout << response_body.size() << endl;
     if (response_body.size() != 0) {
@@ -391,22 +397,31 @@ void MethodGet(int client_fd, int server_fd, Client & client) {
     cout << response.data() << endl;
     // Cache the response
     Response response_class(response, client.url);
-    cout << "url: " << response_class.url << endl << "if cache: " << response_class.if_cache << endl
+    cout << "url: " << response_class.url << endl << "status: " << response_class.status << "if cache: " << response_class.if_cache << endl
         << "expiration_time: " << response_class.expiration_time << endl << "if validate: " << response_class.if_validate
         << endl << "age: " << response_class.age << endl << "last_modified: " << response_class.last_modified << endl
         << "etag: " << response_class.etag << endl << response_class.content.data() << endl;
-        // test time
+
     
-    if (response_class.if_cache) {
-        if (cache.find(response_class.url) != cache.end()) {
-            cache.erase(response_class.url);
+    unordered_map<string, Response>::iterator it_incache = cache.find(client.url);
+    if (response_class.status == "304" && it_incache != cache.end()){
+        cout << "304 received, return cached content" << endl;
+        cout << it->first << endl;
+        sendAll(client_fd, it->second.content, it->second.content.size());   
+    } else if (response_class.status == "200") {
+        if (response_class.if_cache) {
+            if (it != cache.end()) {
+                cout << "removed stale cache" << endl;
+                cache.erase(response_class.url);
+            }
+            cout << "saved response in cache" << endl;
+            cache.insert(make_pair(response_class.url, response_class));
         }
-        cache.insert(make_pair(response_class.url, response_class));
+        sendAll(client_fd, response, response.size());
+    } else {
+        sendAll(client_fd, response, response.size());
     }
     
-    
-
-    sendAll(client_fd, response, response.size());
 }
 
 
@@ -433,7 +448,7 @@ void handleRequest(int client_connection_fd) {
     Client client(client_request); // pass request header + body
     cout << "port:\n" << client.port << endl;
     cout << "method:\n" << client.method << "host:\n" << client.host << "url:\n" << client.url << "body:\n" << client.content.data() << endl;
-    cout << "HTTP" << client.httpVersion << endl;
+    cout << "HTTP: " << client.httpVersion << endl;
     ClientSocket client_socket(client.host, client.port);
     client_socket.init_socket();
     // deal with this shit

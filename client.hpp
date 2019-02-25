@@ -71,6 +71,7 @@ public:
 
 class Response{
 public:
+    string status;
     string url;
     // string line1;
     bool if_cache;
@@ -94,6 +95,12 @@ public:
         strncpy(temp, response_content.data(), header_end - response_content.data());
         temp[header_end - response_content.data()] = 0;
         string header(temp);
+        // parse status
+        size_t space_before, space_end;
+        space_before = header.find(" ");
+        space_end = header.find(" ", ++space_before);
+        status = header.substr(space_before, space_end - space_before);
+        // parse cache info
         size_t pos_cache = header.find("Cache-Control:");
         if (pos_cache != string::npos){
             if (header.find("no-store", pos_cache) != string::npos || 
@@ -115,7 +122,8 @@ public:
                     header.find("proxy-revalidate", pos_cache) != string::npos ){
                 if_validate = true;
             }
-            if (size_t pos = header.find("s-maxage", pos_cache) != string::npos){
+            size_t pos;
+            if ((pos = header.find("s-maxage", pos_cache)) != string::npos){
                 size_t pos1 = header.find("=", pos);
                 size_t pos2 = pos1 + 1;
                 pos1++;
@@ -126,7 +134,7 @@ public:
                 time_t now = time(0);
                 expiration_time = now + age - this->age;
             }
-            else if (size_t pos = header.find("max-age", pos_cache) != string::npos){
+            else if ((pos = header.find("max-age", pos_cache)) != string::npos){
                 size_t pos1 = header.find("=", pos);
                 size_t pos2 = pos1 + 1;
                 pos1++;
@@ -137,29 +145,11 @@ public:
                 time_t now = time(0);
                 expiration_time = now + age - this->age;
             }
-            else if (size_t pos = header.find("Expires") != string::npos){
-                size_t pos1 = header.find(" ", pos); // after Expires:
-                size_t pos2 = header.find("\r\n", pos); // the end of the line
-                pos1 = header.find(" ", pos1); // after week string
-                string temp = header.substr(pos1 + 1, pos2 - pos1); // day month year time GMT
-                size_t pos_ws = temp.find(" "); // whitespace after day
-                vector<string> time;
-                while (pos_ws != string::npos){
-                    string tem = temp.substr(0, pos_ws);
-                    time.push_back(tem);
-                    temp = temp.substr(pos_ws + 1, string::npos);
-                    pos_ws = temp.find(" ");
-                }
-                string toTrans = time[0] + " " + time[1] + " " + time[2] + " " + time[3];
-                struct tm timest;
-                strptime(toTrans.c_str(), "%d %b %Y %H:%M:%S", &timest);
-
-                expiration_time = mktime(&timest);
-                //scan_httpdate(header.substr(pos1 + 1, pos2 - pos1 - 1).c_str, &x);
-            }
+            
             
             size_t pos_etag;
-            if ((pos_etag = header.find("Etag: ")) != string::npos) {
+            if ((pos_etag = header.find("ETag: ")) != string::npos) {
+                cout << "etag position: " << pos_etag << endl;
                 pos_etag += 6;
                 size_t pos_end = header.find("\r\n", pos_etag);
                 etag = header.substr(pos_etag, pos_end - pos_etag);
@@ -173,5 +163,38 @@ public:
 
             if_cache = true;
         }
+        else {
+            size_t pos;
+            if ((pos = header.find("Expires: ")) != string::npos){
+                cout << "expires pos: " << pos << endl;
+                size_t pos1 = header.find(" ", pos); // after Expires:
+                size_t pos2 = header.find("\r\n", pos); // the end of the line
+                pos1 = header.find(" ", pos1 + 1); // after week string
+                string temp = header.substr(pos1 + 1, pos2 - pos1); // day month year time GMT
+                cout << "complete time format: " << temp << endl;
+                size_t pos_ws = temp.find(" "); // whitespace after day
+                vector<string> time;
+                while (pos_ws != string::npos){
+                    string tem = temp.substr(0, pos_ws);
+                    time.push_back(tem);
+                    cout << "every mistake: " << tem << endl;
+                    temp = temp.substr(pos_ws + 1, string::npos);
+                    pos_ws = temp.find(" ");
+                }
+                string toTrans = time[0] + " " + time[1] + " " + time[2] + " " + time[3];
+                struct tm timest = {0};
+                strptime(toTrans.c_str(), "%d %b %Y %H:%M:%S", &timest);
+
+                expiration_time = mktime(&timest);
+                //scan_httpdate(header.substr(pos1 + 1, pos2 - pos1 - 1).c_str, &x);
+            }
+            if_cache = true;
+        }
     }
+};
+
+class Log {
+    size_t uid;
+    Log(): uid(uid) {}
+    
 };
