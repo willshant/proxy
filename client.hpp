@@ -361,3 +361,39 @@ public:
 };
 
 Log logfile(string("/home/hx54/568/proxy/log/proxy.log"));
+
+// derived from leetcode LRU cache C++ solusions
+// class Cache {
+// int capacity;
+// list<string> mlist;
+// unordered_map<string, pair<Response, list<string>::iterator>> cache;
+// public:
+//     Cache(int cap) : capacity(cap) {}
+//     Response *find(string url) {
+//         unordered_map<string, pair<Response, list<string>::iterator>>::iterator it = cache.find(url);
+//         if (it == cache.end()) {
+//             return NULL;
+//         }
+//         move_to_front(it);
+//         return &(it->second.first);
+//     }
+//     void insert(string url, Response resp) {
+//         unordered_map<string, pair<Response, list<string>::iterator>>::iterator it = cache.find(url);
+//         if (it != cache.end()) {
+//             move_to_front(it);
+//         } else {
+//             if (cache.size() == capacity) {
+//                 cache.erase(mlist.back());
+//                 mlist.pop_back();
+//             }
+//             mlist.push_front(url);
+//         }
+//         cache[url] = { resp, mlist.begin() };
+//     }
+//     void move_to_front(unordered_map<string, pair<Response, list<string>::iterator>>::iterator it) {
+//         string key_url = it->first;
+//             mlist.erase(it->second.second);
+//             mlist.push_front(key_url);
+//             it->second.second = mlist.begin();
+//     }
+// };
