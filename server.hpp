@@ -469,9 +469,14 @@ void handleRequest(int client_connection_fd, string ipaddr) {
     
     logfile.request_from_client(client);
     
-    cout << "port:\n" << client.port << endl;
-    cout << "method:\n" << client.method << "host:\n" << client.host << "url:\n" << client.url << "body:\n" << client.content.data() << endl;
+    cout << "port: " << client.port << endl;
+    cout << "method: " << client.method << endl << "host: " << client.host << endl << "url: " << client.url << endl << "body: " << client.content.data() << endl;
     cout << "HTTP: " << client.httpVersion << endl;
+    cout << "Cache Control fields\n";
+    cout << "no-store: " << client.no_store << endl << "only_if_cached: " << client.only_if_cached << endl;
+    cout << "no_cache: " << client.no_cache << endl << "if_max_stale: " << client.if_max_stale << endl << "if_max_stale_has_value: " << client.if_max_stale_has_value << endl;
+    cout << "max-stale: " << client.max_stale << endl << "if_max_age: " << client.if_max_age << endl << "if_min_fresh: " << client.if_min_fresh << endl;
+    cout << "min-fresh: " << client.min_fresh << endl;
     ClientSocket client_socket(client.host, client.port);
     
     if (client_socket.init_socket() == -1) {

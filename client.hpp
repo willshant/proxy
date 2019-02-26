@@ -25,7 +25,22 @@ public:
     vector<char> content;
     string port;
     string httpVersion;
-    Client(vector<char> & request_content, string & ipadd): ipaddr(ipadd), content(request_content) {
+    // below is the fields of cache control
+    bool no_store;
+    bool only_if_cached;
+    bool no_cache;
+    bool if_max_stale;
+    bool if_max_stale_has_value;
+    time_t max_stale;
+    bool if_max_age;
+    time_t max_age;
+    bool if_min_fresh;
+    time_t min_fresh;
+    Client(vector<char> & request_content, string & ipadd): 
+        ipaddr(ipadd), content(request_content), no_store(false), 
+        only_if_cached(false), no_cache(false), if_max_stale(false), 
+        if_max_stale_has_value(false), max_stale(0), if_max_age(false), 
+        max_age(0), if_min_fresh(false), min_fresh(0) {
         uid = init_uid++;
         char * pos = strstr(request_content.data(), " ");
         char temp[10];
@@ -37,7 +52,7 @@ public:
         strncpy(temp_line, request_content.data(), pos - request_content.data());
         temp_line[pos - request_content.data()] = 0;
         string line1(temp_line);
-        this->line1 = line1; // new change
+        this->line1 = line1;
         size_t pos_1 = line1.find(" ");
         size_t pos_2 = line1.find(" ", pos_1 + 1);
         url = line1.substr(pos_1 + 1, pos_2 - pos_1 -1);
@@ -72,10 +87,55 @@ public:
             }
         }
         // parse time header fields
-
+        char * header_end = strstr(content.data(), "\r\n\r\n");
+        char header_temp[8192];
+        strncpy(header_temp, content.data(), header_end - content.data());
+        header_temp[header_end - content.data()] = 0; // extract the header part
+        string header(header_temp);
+        size_t pos_cache = header.find("Cache-Control:");
+        if (pos_cache != string::npos) {
+            if (header.find("no-store", pos_cache) != string::npos){
+                no_store = true;
+                return;
+            }
+            size_t pos_for_cache;
+            if ((pos_for_cache = header.find("only-if-cached", pos_cache)) != string::npos) {
+                only_if_cached = true;
+            }
+            else if ((pos_for_cache = header.find("no-cache", pos_cache)) != string::npos) {
+                no_cache = true;
+            }
+            else if ((pos_for_cache = header.find("max-stale", pos_cache)) != string::npos) {
+                if_max_stale = true;
+                size_t pos_eq = header.find("=", pos_for_cache);
+                if (pos_eq != string::npos) {
+                    if_max_stale_has_value = true;
+                    size_t pos_end = header.find("\r\n", pos_eq);
+                    max_stale = atoi(header.substr(pos_eq + 1, pos_end - pos_eq - 1).c_str());
+                }
+                else {
+                    if_max_stale_has_value = false;
+                }
+            }
+            else if ((pos_for_cache = header.find("max-age", pos_cache)) != string::npos) {
+                if_max_age = true;
+                size_t pos_eq = header.find("=", pos_for_cache);
+                if (pos_eq != string::npos) {
+                    size_t pos_end = header.find("\r\n", pos_eq);
+                    max_age = atoi(header.substr(pos_eq + 1, pos_end - pos_eq - 1).c_str());
+                }
+            }
+            else if ((pos_for_cache = header.find("min-fresh", pos_cache)) != string::npos) {
+                if_min_fresh = true;
+                size_t pos_eq = header.find("=", pos_for_cache);
+                if (pos_eq != string::npos) {
+                    size_t pos_end = header.find("\r\n", pos_eq);
+                    min_fresh = atoi(header.substr(pos_eq + 1, pos_end - pos_eq - 1).c_str());
+                }
+            }
+        }
     }
 };
-
 
 class Response{
 public:
@@ -93,14 +153,9 @@ public:
     // change made by fking mind
     time_t receive;
     Response(vector<char> & response_content, string & url): 
-        url(url), 
-        if_cache(false), 
-        if_nocache(false), 
-        if_validate(false), 
-        expiration_time(time(0)), 
-        age(0), 
-        content(response_content),
-        receive(time(0)) {
+        url(url), if_cache(false), if_nocache(false), 
+        if_validate(false), expiration_time(time(0)), age(0), 
+        content(response_content),receive(time(0)) {
         char * header_end = strstr(response_content.data(), "\r\n\r\n");
         char temp[8192];
         strncpy(temp, response_content.data(), header_end - response_content.data());
