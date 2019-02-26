@@ -138,7 +138,7 @@ public:
 };
 
 vector<char> recvHeader(int fd){
-    cout << "in receivr header" << endl;
+    // cout << "in receivr header" << endl;
     vector<char> res;
     int flag = 0;
     char buffer[1];
@@ -180,12 +180,12 @@ vector<char> recvHeader(int fd){
 }
 
 vector<char> parseHeader(int fd, vector<char> & client_request_header) {
-    cout << "in parse header" << endl;
+    // cout << "in parse header" << endl;
     vector<char> body;
     char * pos1 = strstr(client_request_header.data(), "Content-Length:");
     char * pos2 = strstr(client_request_header.data(), "Transfer-Encoding:");
     if (pos2 != NULL){
-        cout << "transfer encoding loop" << endl;
+        // cout << "transfer encoding loop" << endl;
         client_request_header.pop_back();
         return recvHeader(fd);
     }
@@ -198,12 +198,12 @@ vector<char> parseHeader(int fd, vector<char> & client_request_header) {
         vector<char> buf(num+1, 0);
         if(num != 0){
             recv(fd, buf.data(), num, MSG_WAITALL);
-            cout << "actual body " << buf.data() << endl;
+            // cout << "actual body " << buf.data() << endl;
             client_request_header.pop_back();
         }
         return buf;
     }
-    cout << "no header" << endl;
+    // cout << "no header" << endl;
     return body;
 }
 
@@ -215,8 +215,8 @@ void sendAll(int fd, vector<char> & target, int size){
             cout << "error in send" << endl;
             break;
         }
-        cout << "in send all: " << endl;
-        cout << i << endl;
+        // cout << "in send all: " << endl;
+        // cout << i << endl;
         sum += i;
     }
 }
@@ -230,17 +230,18 @@ void sendConnect(int fd, const char * buffer, int size){
             cout << "error in send" << endl;
             break;
         }
-        cout << "in send all: " << endl;
-        cout << i << endl;
+        // cout << "in send all: " << endl;
+        // cout << i << endl;
         sum += i;
     }
-    cout << "exit send all" << endl;
+    // cout << "exit send all" << endl;
 }
 
 void send200(int fd, Client & client){
     string temp;
     temp = client.httpVersion + " 200 Connection Established\r\n\r\n";
     cout << "send 200 message:" << temp << endl;
+    logfile.responding_code(client, temp);
     sendConnect(fd, temp.c_str(), temp.size());
 }
 
@@ -248,18 +249,20 @@ void send504(int fd, Client & client){
     string temp;
     temp = client.httpVersion + " 504 Gateway Timeout\r\n\r\n";
     cout << "send 504 message:" << temp << endl;
+    logfile.responding_code(client, temp);
     sendConnect(fd, temp.c_str(), temp.size());
 }
 
 void sendRevalidation(int server_fd, Client & client, unordered_map<string, Response>::iterator it) {
-    cout << "need revalidation" << endl;
+    // cout << "need revalidation" << endl;
+    logfile.validate(client);
     if (!it->second.etag.empty()) {
-        cout << "add etag" << endl;
+        // cout << "add etag" << endl;
         vector<char> newReq = CreateRequest(it, client, true);
         sendAll(server_fd, newReq, newReq.size());
     }
     else if (!it->second.last_modified.empty()) {
-        cout << "add last mod" << endl;
+        // cout << "add last mod" << endl;
         vector<char> newReq = CreateRequest(it, client, false);
         sendAll(server_fd, newReq, newReq.size());
     }
@@ -272,7 +275,7 @@ void sendRevalidation(int server_fd, Client & client, unordered_map<string, Resp
 
 void sendCache(int client_fd, Client & client, unordered_map<string, Response>::iterator it) {
     sendAll(client_fd, it->second.content, it->second.content.size());
-    logfile.valid(client);
+    // logfile.valid(client);
 } // need return after call
 
 void sendOriginServer(int server_fd, Client & client) {
@@ -320,23 +323,27 @@ void MethodCon(int client_fd, int server_fd, Client & client){
                 }
             }
             if (exitFlag == 1){
-                break;
                 cout << "exit flag == 1" << endl;
                 logfile.close_tunnel(client);
+                break;
             }
         }
     }
     cout << "exit select" << endl;
 }
 
-void MethodPost(int server_fd, int client_fd, Client & client){
+void MethodPost(int server_fd, int client_fd, Client & client){    
+    logfile.re_request(client);
     sendAll(server_fd, client.content, client.content.size());
     vector<char> response = recvHeader(server_fd);
     vector<char> response_body = parseHeader(server_fd, response);
+    Response response_class(response, client.url);
+    logfile.receive_response(client, response_class);
     if (response_body.size() != 0) {
         response.insert(response.end(), response_body.begin(), response_body.end());
     }
     sendAll(client_fd, response, response.size());
+    logfile.responding(client, response_class);
 }
 
 void MethodGet(int client_fd, int server_fd, Client & client) {
@@ -381,8 +388,9 @@ void MethodGet(int client_fd, int server_fd, Client & client) {
     //     logfile.not_in_cache(client);
     //     sendAll(server_fd, client.content, client.content.size());
     // }
-
+    cout << "in get method" << endl;
     if (it != cache.end()) {
+	cout << "cache found" << it->first << endl;
 	it->second.age += time(0) - it->second.receive;
     }
     if (client.no_store == true || 
@@ -399,6 +407,7 @@ void MethodGet(int client_fd, int server_fd, Client & client) {
         else {
             // send cache
             sendCache(server_fd, client, it);
+            logfile.valid(client);
             return;
         }
     }
@@ -411,10 +420,15 @@ void MethodGet(int client_fd, int server_fd, Client & client) {
             }
             else if (client.if_max_stale == true) {
                 if (client.if_max_stale_has_value == true) {
-                    if (it->second.age < it->second.expiration_time + 
+                    if (it->second.age + it->second.receive < it->second.expiration_time + 
                         client.max_stale) {
                         // send cache
                         sendCache(server_fd, client, it);
+                        if (it->second.age + it->second.receive < it->second.expiration_time) {
+                            logfile.valid(client);
+                        } else {
+                            logfile.expired(client, it->second);
+                        }
                         return;
                     }
                     else {
@@ -425,6 +439,7 @@ void MethodGet(int client_fd, int server_fd, Client & client) {
                 else {
                     // send cache
                     sendCache(server_fd, client, it);
+                    logfile.valid(client);
                     return;
                 }
             }
@@ -432,6 +447,7 @@ void MethodGet(int client_fd, int server_fd, Client & client) {
                 if (client.max_age > it->second.age) {
                     // send cache
                     sendCache(server_fd, client, it);
+                    logfile.valid(client);
                     return;
                 }
                 else {
@@ -445,6 +461,7 @@ void MethodGet(int client_fd, int server_fd, Client & client) {
                     it->second.receive - it->second.age) {
                     // send cache
                     sendCache(server_fd, client, it);
+                    logfile.valid(client);
                     return;
                 }
                 else {
@@ -458,6 +475,7 @@ void MethodGet(int client_fd, int server_fd, Client & client) {
             else {
                 // send cache and return
                 sendCache(server_fd, client, it);
+                logfile.valid(client);
                 return;
             }
         }
@@ -522,8 +540,8 @@ void handleRequest(int client_connection_fd, string ipaddr) {
         cout << "thread ends: " << client_connection_fd << endl;
         return;
     }
-    cout << "client request header: " << endl;
-    cout << client_request.data() << endl;
+    // cout << "client request header: " << endl;
+    // cout << client_request.data() << endl;
 
     vector<char> client_request_body = parseHeader(client_connection_fd, client_request);
     cout << "body size: " << client_request_body.size() << endl;
@@ -566,10 +584,10 @@ void handleRequest(int client_connection_fd, string ipaddr) {
         cout << "received unresolvable http method: " << client.method << endl;
     }
     
-    cout << "before free" << endl;
+    // cout << "before free" << endl;
     freeaddrinfo(client_socket.host_info_list);
-    cout << "after first free" << endl;
+    // cout << "after first free" << endl;
     close(client_socket.socket_fd);
-    cout << "after second free" << endl;
+    // cout << "after second free" << endl;
     cout << "thread ends: " << client_connection_fd << endl;
 }

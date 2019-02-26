@@ -346,6 +346,12 @@ public:
         log_file_lock.unlock();
         cout << client.uid << ": Responding " << response.line1 << endl;
     }
+    void responding_code(Client & client, string code) {
+        log_file_lock.lock();
+        log_file << client.uid << ": Responding " << code << endl;
+        log_file_lock.unlock();
+        cout << client.uid << ": Responding " << code << endl;
+    }
     void close_tunnel(Client & client) {
         log_file_lock.lock();
         log_file << client.uid << ": Tunnel closed" << endl;
