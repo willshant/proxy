@@ -107,8 +107,6 @@ public:
         memset(&host_info, 0, sizeof(host_info));
         host_info.ai_family   = AF_UNSPEC;
         host_info.ai_socktype = SOCK_STREAM;
-        // cout << "host name = "  << hostname.c_str() << endl;
-        // cout << "port" << port << endl;
         status = getaddrinfo(hostname.c_str(), port, &host_info, &host_info_list);
         if (status != 0) {
             cerr << "Error: cannot get address info for host" << endl;
@@ -147,13 +145,11 @@ vector<char> recvHeader(int fd){
 
     while(true){
         memset(buffer, 0, 1);
-        // cout << "before recv" << endl;
         if (recv(fd, buffer, 1, 0) == 0){
             cout << "receive return 0" << endl;
             res.resize(0, 0);
             return res;
         }
-        // cout << "received char: " << buffer << endl;
         res.push_back(buffer[0]);
 
         if (buffer[0] == '\r'){
@@ -188,7 +184,6 @@ vector<char> parseHeader(int fd, vector<char> & client_request_header) {
     vector<char> body;
     char * pos1 = strstr(client_request_header.data(), "Content-Length:");
     char * pos2 = strstr(client_request_header.data(), "Transfer-Encoding:");
-    // cout << "in parseheader\n" << pos1 << endl;
     if (pos2 != NULL){
         cout << "transfer encoding loop" << endl;
         client_request_header.pop_back();
@@ -208,37 +203,13 @@ vector<char> parseHeader(int fd, vector<char> & client_request_header) {
         }
         return buf;
     }
-    // if (pos1 != NULL || pos1 != NULL) {
-    //     cout << "content length or transfer encoding not null" << endl;
-    //     return recvHeader(fd);
-    // }
     cout << "no header" << endl;
     return body;
 }
 
-
-// vector<char> recvAll(int fd) {
-//     vector<char> buffer(4096, 0);
-//     int index = 0;
-//     int i = 1;
-//     while (true) {
-//         int byte_read = recv(fd, &buffer.data()[index] , (4096 * i) - index, 0);
-//         cout << "byte read: " << byte_read << endl;
-//         if (byte_read == 0) {
-//             break;
-//         }
-//         index += byte_read;
-//         if (index == 4096 * i) {
-//             buffer.resize(4096 * (++i), 0);
-//         } 
-//     }
-//     return buffer;
-// }
-
 void sendAll(int fd, vector<char> & target, int size){
     int sum = 0;
     while(sum != size){
-//        cout << "enter" << endl;
         int i = send(fd, target.data() + sum, size-sum, 0);
         if (i == -1) {
             cout << "error in send" << endl;
@@ -248,7 +219,6 @@ void sendAll(int fd, vector<char> & target, int size){
         cout << i << endl;
         sum += i;
     }
-//    cout << "exit" << endl;
 }
 
 void sendConnect(int fd, const char * buffer, int size){
@@ -274,6 +244,43 @@ void send200(int fd, Client & client){
     sendConnect(fd, temp.c_str(), temp.size());
 }
 
+void send504(int fd, Client & client){
+    string temp;
+    temp = client.httpVersion + " 504 Gateway Timeout\r\n\r\n";
+    cout << "send 504 message:" << temp << endl;
+    sendConnect(fd, temp.c_str(), temp.size());
+}
+
+void sendRevalidation(int server_fd, Client & client, unordered_map<string, Response>::iterator it) {
+    cout << "need revalidation" << endl;
+    if (!it->second.etag.empty()) {
+        cout << "add etag" << endl;
+        vector<char> newReq = CreateRequest(it, client, true);
+        sendAll(server_fd, newReq, newReq.size());
+    }
+    else if (!it->second.last_modified.empty()) {
+        cout << "add last mod" << endl;
+        vector<char> newReq = CreateRequest(it, client, false);
+        sendAll(server_fd, newReq, newReq.size());
+    }
+    else {
+        // send original request to server
+        sendAll(server_fd, client.content, client.content.size());
+    }
+    logfile.re_request(client);
+}
+
+void sendCache(int client_fd, Client & client, unordered_map<string, Response>::iterator it) {
+    sendAll(client_fd, it->second.content, it->second.content.size());
+    logfile.valid(client);
+} // need return after call
+
+void sendOriginServer(int server_fd, Client & client) {
+    sendAll(server_fd, client.content, client.content.size());
+    logfile.not_in_cache(client);
+    logfile.re_request(client);
+}
+
 void MethodCon(int client_fd, int server_fd, Client & client){
     // return 200 ok
     send200(client_fd, client);
@@ -296,37 +303,19 @@ void MethodCon(int client_fd, int server_fd, Client & client){
         else {
             for (int i = 0; i <= fd_max; ++i){
                 if (FD_ISSET(i, &sub) && (i == client_fd || i == server_fd)){
-                    // cout << "received fd in select, fd = " << i << endl;
-                    // memset(buffer, 0, 4096);
-                    // status = recv(i, buffer, 4096, 0);
-                    // int exitflag = 1;
-                    // vector<char> message = recvHeader(i, exitflag);
                     vector<char> message(1024, 0);
                     status = recv(i, message.data(), 1024, 0);
-                    // cout << "byte received: " << status << endl;
-                    
-                    // cout << "buffer received: " << message.data() << endl;
-                    // cout << "receive length: " << message.size() << endl;
                     if (status == 0 || status == -1){
                         cout << "exit flag is set to 1" << endl;
                         exitFlag = 1;
                         break;
                     }
                     message.resize(status);
-                    // int size = sizeof(buffer);
                     if (i == client_fd){
-                        // cout << "forward message from client to server, fd to = " << server_fd << endl;
-                        // sendAll(server_fd, message, message.size());
-                        // cout << "before send" << endl;
                         send(server_fd, message.data(), status, 0);
-                        // cout << "after send" << endl;
                     }
                     else if (i == server_fd) {
-                        // cout << "forward message from server to client, fd to = " << client_fd << endl;
-                        // sendAll(client_fd, message, message.size());
-                        // cout << "before send" << endl;
                         send(client_fd, message.data(), status, 0);
-                        // cout << "after send" << endl;
                     }
                 }
             }
@@ -343,10 +332,6 @@ void MethodCon(int client_fd, int server_fd, Client & client){
 void MethodPost(int server_fd, int client_fd, Client & client){
     sendAll(server_fd, client.content, client.content.size());
     vector<char> response = recvHeader(server_fd);
-    // if(response.size() == 0){
-    //     cout << "strange behavior of new accept" << endl;
-    //     return;
-    // }
     vector<char> response_body = parseHeader(server_fd, response);
     if (response_body.size() != 0) {
         response.insert(response.end(), response_body.begin(), response_body.end());
@@ -356,45 +341,130 @@ void MethodPost(int server_fd, int client_fd, Client & client){
 
 void MethodGet(int client_fd, int server_fd, Client & client) {
     unordered_map<string, Response>::iterator it = cache.find(client.url);
+    // if (it != cache.end()) {
+    //     cout << "whether cached" << endl;
+    //     if (it->second.if_nocache || it->second.expiration_time < time(0)) {
+    //         if (it->second.if_nocache){
+    //             // print validate
+    //             logfile.validate(client);
+    //         }
+    //         else if (it->second.expiration_time < time(0)){
+    //             // print expired
+    //             logfile.expired(client, it->second);
+    //         }
+    //         cout << "need revalidation" << endl;
+    //         if (!it->second.etag.empty()) {
+    //             cout << "add etag" << endl;
+    //             vector<char> newReq = CreateRequest(it, client, true);
+    //             sendAll(server_fd, newReq, newReq.size());
+    //         }
+    //         else if (!it->second.last_modified.empty()) {
+    //             cout << "add last mod" << endl;
+    //             vector<char> newReq = CreateRequest(it, client, false);
+    //             sendAll(server_fd, newReq, newReq.size());
+    //         }
+    //         else {
+    //             // send original request to server
+    //             sendAll(server_fd, client.content, client.content.size());
+    //         }
+    //         logfile.re_request(client);
+    //     }
+    //     else {
+    //         // send response and return
+    //         logfile.valid(client);
+    //         sendAll(client_fd, it->second.content, it->second.content.size());
+    //         return;
+    //     }
+    // }
+    // else {
+    //     // send original request to server
+    //     logfile.not_in_cache(client);
+    //     sendAll(server_fd, client.content, client.content.size());
+    // }
+
     if (it != cache.end()) {
-        cout << "whether cached" << endl;
-        if (it->second.if_nocache || it->second.expiration_time < time(0)) {
-            if (it->second.if_nocache){
-                // print validate
-                logfile.validate(client);
-            }
-            else if (it->second.expiration_time < time(0)){
-                // print expired
-                logfile.expired(client, it->second);
-            }
-            cout << "need revalidation" << endl;
-            if (!it->second.etag.empty()) {
-                cout << "add etag" << endl;
-                vector<char> newReq = CreateRequest(it, client, true);
-                sendAll(server_fd, newReq, newReq.size());
-            }
-            else if (!it->second.last_modified.empty()) {
-                cout << "add last mod" << endl;
-                vector<char> newReq = CreateRequest(it, client, false);
-                sendAll(server_fd, newReq, newReq.size());
-            }
-            else {
-                // send original request to server
-                sendAll(server_fd, client.content, client.content.size());
-            }
-            logfile.re_request(client);
+	it->second.age += time(0) - it->second.receive;
+    }
+    if (client.no_store == true || 
+        it == cache.end()) {
+        // send to original server
+        sendOriginServer(server_fd, client);
+    }
+    else if (client.only_if_cached == true) {
+        if (it == cache.end()) {
+            // send 504
+            send504(client_fd, client);
+            return;
         }
         else {
-            // send response and return
-            logfile.valid(client);
-            sendAll(client_fd, it->second.content, it->second.content.size());
+            // send cache
+            sendCache(server_fd, client, it);
             return;
         }
     }
     else {
-        // send original request to server
-        logfile.not_in_cache(client);
-        sendAll(server_fd, client.content, client.content.size());
+        if (it != cache.end()) {
+            if (client.no_cache == true || 
+                it->second.if_nocache == true) {
+                // send validate
+                sendRevalidation(server_fd, client, it);
+            }
+            else if (client.if_max_stale == true) {
+                if (client.if_max_stale_has_value == true) {
+                    if (it->second.age < it->second.expiration_time + 
+                        client.max_stale) {
+                        // send cache
+                        sendCache(server_fd, client, it);
+                        return;
+                    }
+                    else {
+                        // send validate
+                        sendRevalidation(server_fd, client, it);
+                    }
+                }
+                else {
+                    // send cache
+                    sendCache(server_fd, client, it);
+                    return;
+                }
+            }
+            else if (client.if_max_age == true) {
+                if (client.max_age > it->second.age) {
+                    // send cache
+                    sendCache(server_fd, client, it);
+                    return;
+                }
+                else {
+                    // send validate
+                    logfile.expired(client, it->second);
+                    sendRevalidation(server_fd, client, it);
+                }
+            }
+            else if (client.if_min_fresh == true) {
+                if (client.min_fresh < it->second.expiration_time - 
+                    it->second.receive - it->second.age) {
+                    // send cache
+                    sendCache(server_fd, client, it);
+                    return;
+                }
+                else {
+                    // send validate
+                    sendRevalidation(server_fd, client, it);
+                }
+            } else if (it->second.expiration_time < time(0)) {
+                // send revalidation
+                sendRevalidation(server_fd, client, it);
+            }
+            else {
+                // send cache and return
+                sendCache(server_fd, client, it);
+                return;
+            }
+        }
+        else {
+            // send original request
+            sendOriginServer(server_fd, client);
+        }
     }
 
     // sendAll(server_fd, client.content, client.content.size());
@@ -469,9 +539,14 @@ void handleRequest(int client_connection_fd, string ipaddr) {
     
     logfile.request_from_client(client);
     
-    cout << "port:\n" << client.port << endl;
-    cout << "method:\n" << client.method << "host:\n" << client.host << "url:\n" << client.url << "body:\n" << client.content.data() << endl;
+    cout << "port: " << client.port << endl;
+    cout << "method: " << client.method << endl << "host: " << client.host << endl << "url: " << client.url << endl << "body: " << client.content.data() << endl;
     cout << "HTTP: " << client.httpVersion << endl;
+    cout << "Cache Control fields\n";
+    cout << "no-store: " << client.no_store << endl << "only_if_cached: " << client.only_if_cached << endl;
+    cout << "no_cache: " << client.no_cache << endl << "if_max_stale: " << client.if_max_stale << endl << "if_max_stale_has_value: " << client.if_max_stale_has_value << endl;
+    cout << "max-stale: " << client.max_stale << endl << "if_max_age: " << client.if_max_age << endl << "if_min_fresh: " << client.if_min_fresh << endl;
+    cout << "min-fresh: " << client.min_fresh << endl;
     ClientSocket client_socket(client.host, client.port);
     
     if (client_socket.init_socket() == -1) {

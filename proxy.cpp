@@ -19,10 +19,6 @@ int main() {
         char address[80];
         getnameinfo((struct sockaddr *)&socket_addr, socket_addr_len, address, 80, NULL, 0, 0);
         string ipaddr(address);
-        // if (!getpeername(client_connection_fd, (struct sockaddr *)&socket_addr, &socket_addr_len)){
-        //     string temp(inet_ntop((struct sockaddr *)socket_addr.sin_family, (struct sockaddr *)&socket_addr.sin_addr));
-        //     ipaddr = temp;
-        // }
         cout << "client fd: " << client_connection_fd << endl;
         // socket_fd will keep 
         if (client_connection_fd == -1) {
