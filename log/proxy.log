@@ -1,0 +1,19 @@
+0: "GET http://detectportal.firefox.com/success.txt HTTP/1.1" from localhost @ Mon Feb 25 17:33:08 2019
+0: not in cache
+0: Received HTTP/1.1 200 OK from detectportal.firefox.com
+0: not cacheable because Either no-store or private
+0: Responding HTTP/1.1 200 OK
+1: "CONNECT socket.jiuzhang.com:443 HTTP/1.1" from 10.197.52.249 @ Mon Feb 25 17:35:49 2019
+2: "CONNECT socket.jiuzhang.com:443 HTTP/1.1" from 10.197.52.249 @ Mon Feb 25 17:35:49 2019
+3: "CONNECT socket.jiuzhang.com:443 HTTP/1.1" from 10.197.52.249 @ Mon Feb 25 17:35:49 2019
+4: "CONNECT socket.jiuzhang.com:443 HTTP/1.1" from 10.197.52.249 @ Mon Feb 25 17:35:49 2019
+5: "HEAD http://fbkfkguyovndygj/ HTTP/1.1" from 10.197.52.249 @ Mon Feb 25 17:43:26 2019
+6: "HEAD http://swptlir/ HTTP/1.1" from 10.197.52.249 @ Mon Feb 25 17:43:26 2019
+5: ERROR Unresolvable Url
+6: ERROR Unresolvable Url
+7: "HEAD http://nqgtuqmbu/ HTTP/1.1" from 10.197.52.249 @ Mon Feb 25 17:43:26 2019
+7: ERROR Unresolvable Url
+8: "CONNECT socket.jiuzhang.com:443 HTTP/1.1" from 10.197.52.249 @ Mon Feb 25 17:43:41 2019
+9: "CONNECT socket.jiuzhang.com:443 HTTP/1.1" from 10.197.52.249 @ Mon Feb 25 17:43:41 2019
+10: "CONNECT socket.jiuzhang.com:443 HTTP/1.1" from 10.197.52.249 @ Mon Feb 25 17:43:42 2019
+11: "CONNECT socket.jiuzhang.com:443 HTTP/1.1" from 10.197.52.249 @ Mon Feb 25 17:43:42 2019

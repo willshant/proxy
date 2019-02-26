@@ -1,13 +1,14 @@
 #include "server.hpp"
+#include <arpa/inet.h>
+#include <unistd.h>
 
 int main() {
     Server server;
-    
+
     if (server.init_server() == -1) {
         cerr << "Error: cannot build server" << endl;
         return -1;
     }
-
     int i = 0;
     while (1) {
         struct sockaddr_storage socket_addr;
@@ -15,6 +16,13 @@ int main() {
         int client_connection_fd;
         cout << "ith loop:" << i++ << endl;
         client_connection_fd = accept(server.socket_fd, (struct sockaddr *)&socket_addr, &socket_addr_len);
+        char address[80];
+        getnameinfo((struct sockaddr *)&socket_addr, socket_addr_len, address, 80, NULL, 0, 0);
+        string ipaddr(address);
+        // if (!getpeername(client_connection_fd, (struct sockaddr *)&socket_addr, &socket_addr_len)){
+        //     string temp(inet_ntop((struct sockaddr *)socket_addr.sin_family, (struct sockaddr *)&socket_addr.sin_addr));
+        //     ipaddr = temp;
+        // }
         cout << "client fd: " << client_connection_fd << endl;
         // socket_fd will keep 
         if (client_connection_fd == -1) {
@@ -22,7 +30,7 @@ int main() {
             return -1;
         } //if
         // multithreading starts
-        thread(handleRequest, client_connection_fd).detach();
+        thread(handleRequest, client_connection_fd, ipaddr).detach();
         
       
     }

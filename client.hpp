@@ -1,26 +1,31 @@
 #include <string>
-#include<cstdio>
+#include <cstdio>
 #include <string.h>
 #include <vector>
-#include<iostream>
+#include <iostream>
+#include <fstream>
 #include <ctime>
 #include <unordered_map>
+#include <mutex> 
 
 using namespace std;
 
 static size_t init_uid=0;
+mutex log_file_lock;
 
 class Client {
 public:
     size_t uid;
     string method;
     string url;
+    string line1;
     string host;
+    string ipaddr;
     string header;
     vector<char> content;
     string port;
     string httpVersion;
-    Client(vector<char> & request_content): content(request_content) {
+    Client(vector<char> & request_content, string & ipadd): ipaddr(ipadd), content(request_content) {
         uid = init_uid++;
         char * pos = strstr(request_content.data(), " ");
         char temp[10];
@@ -32,6 +37,7 @@ public:
         strncpy(temp_line, request_content.data(), pos - request_content.data());
         temp_line[pos - request_content.data()] = 0;
         string line1(temp_line);
+        this->line1 = line1; // new change
         size_t pos_1 = line1.find(" ");
         size_t pos_2 = line1.find(" ", pos_1 + 1);
         url = line1.substr(pos_1 + 1, pos_2 - pos_1 -1);
@@ -65,6 +71,8 @@ public:
                 host = host.substr(0, pos);
             }
         }
+        // parse time header fields
+
     }
 };
 
@@ -73,7 +81,7 @@ class Response{
 public:
     string status;
     string url;
-    // string line1;
+    string line1;
     bool if_cache;
     bool if_nocache;
     bool if_validate;
@@ -82,6 +90,8 @@ public:
     string last_modified;
     string etag;
     vector<char> content;
+    // change made by fking mind
+    time_t receive;
     Response(vector<char> & response_content, string & url): 
         url(url), 
         if_cache(false), 
@@ -89,12 +99,15 @@ public:
         if_validate(false), 
         expiration_time(time(0)), 
         age(0), 
-        content(response_content) {
+        content(response_content),
+        receive(time(0)) {
         char * header_end = strstr(response_content.data(), "\r\n\r\n");
         char temp[8192];
         strncpy(temp, response_content.data(), header_end - response_content.data());
         temp[header_end - response_content.data()] = 0;
         string header(temp);
+        size_t pos_line1 = header.find("\r\n");
+        line1 = header.substr(0, pos_line1);
         // parse status
         size_t space_before, space_end;
         space_before = header.find(" ");
@@ -194,7 +207,105 @@ public:
 };
 
 class Log {
-    size_t uid;
-    Log(): uid(uid) {}
-    
+    ofstream log_file;
+public:
+    Log(string log_filename){
+        log_file.open(log_filename, ofstream::out | ofstream::trunc);
+    }
+    ~Log() {
+        log_file.close();
+    }
+    void request_from_client(Client & client){
+        time_t tmp = time(0);
+        struct tm * t = localtime(&tmp);
+        char buffer[80];
+        memset(buffer, 0, 80);
+        strftime(buffer, 80, "%a %b %d %H:%M:%S %Y", t);
+        log_file_lock.lock();
+        log_file << client.uid << ": \"" << client.line1 << "\" from " << client.ipaddr << " @ " << buffer << endl;
+        log_file_lock.unlock();
+        cout << client.uid << ": \"" << client.line1 << "\" from " << client.ipaddr << " @ " << buffer << endl;
+    }
+    void not_in_cache(Client & client){
+        log_file_lock.lock();
+        log_file << client.uid << ": not in cache" << endl;
+        log_file_lock.unlock();
+        cout << client.uid << ": not in cache" << endl;
+    }
+    void expired(Client & client, Response & response){
+        struct tm * t = localtime(&response.expiration_time);
+        char buffer[80];
+        memset(buffer, 0, 80);
+        strftime(buffer, 80, "%a %b %d %H:%M:%S %Y", t);
+        log_file_lock.lock();
+        log_file << client.uid << ": in cache, but expired at " << buffer << endl;
+        log_file_lock.unlock();
+        cout << client.uid << ": in cache, but expired at " << buffer << endl;
+    }
+    void validate(Client & client){
+        log_file_lock.lock();
+        log_file << client.uid << ": in cache, requires validation" << endl;
+        log_file_lock.unlock();
+        cout << client.uid << ": in cache, requires validation" << endl;
+    }
+    void valid(Client & client){
+        log_file_lock.lock();
+        log_file << client.uid << ": in cache, valid" << endl;
+        cout << client.uid << ": in cache, valid" << endl;
+        log_file_lock.unlock();
+    }
+    void re_request(Client & client){
+        log_file_lock.lock();
+        log_file << client.uid << ": Requesting " << client.line1 << " from " << client.host << endl;
+        log_file_lock.unlock();
+        cout << client.uid << ": Requesting " << client.line1 << " from " << client.host << endl;
+    }
+    void receive_response(Client & client, Response & response){
+        log_file_lock.lock();
+        log_file << client.uid << ": Received " << response.line1 << " from " << client.host << endl;
+        log_file_lock.unlock();
+        cout << client.uid << ": Received " << response.line1 << " from " << client.host << endl;
+    }
+    void not_cacheable(Client & client){
+        log_file_lock.lock();
+        log_file << client.uid << ": not cacheable because Either no-store or private" << endl;
+        log_file_lock.unlock();
+        cout << client.uid << ": not cacheable because Either no-store or private" << endl;
+    }
+    void expire_cache(Client & client, Response & response) {
+        struct tm * t = localtime(&response.expiration_time);
+        char buffer[80];
+        memset(buffer, 0, 80);
+        strftime(buffer, 80, "%a %b %d %H:%M:%S %Y", t);
+        log_file_lock.lock();
+        log_file << client.uid << ": cached, expired at " << buffer << endl;
+        log_file_lock.unlock();
+        cout << client.uid << ": cached, expired at " << buffer << endl;
+    }
+    void need_revalidate(Client & client) {
+        log_file_lock.lock();
+        log_file << client.uid << ": cached, but requires re-validation" << endl;
+        log_file_lock.unlock();
+        cout << client.uid << ": cached, but requires re-validation" << endl;
+    }
+    void responding(Client & client, Response & response) {
+        log_file_lock.lock();
+        log_file << client.uid << ": Responding " << response.line1 << endl;
+        log_file_lock.unlock();
+        cout << client.uid << ": Responding " << response.line1 << endl;
+    }
+    void close_tunnel(Client & client) {
+        log_file_lock.lock();
+        log_file << client.uid << ": Tunnel closed" << endl;
+        log_file_lock.unlock();
+        cout << client.uid << ": Tunnel closed" << endl;
+    }
+    void err_unresolvable_method(Client & client) {
+        log_file_lock.lock();
+        log_file << client.uid << ": ERROR Unresolvable Url" << endl;
+        log_file_lock.unlock();
+        cout << client.uid << ": ERROR Unresolvable Url" << endl;
+    }
 };
+
+Log logfile(string("/home/hx54/568/proxy/log/proxy.log"));

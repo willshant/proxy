@@ -333,6 +333,7 @@ void MethodCon(int client_fd, int server_fd, Client & client){
             if (exitFlag == 1){
                 break;
                 cout << "exit flag == 1" << endl;
+                logfile.close_tunnel(client);
             }
         }
     }
@@ -358,6 +359,14 @@ void MethodGet(int client_fd, int server_fd, Client & client) {
     if (it != cache.end()) {
         cout << "whether cached" << endl;
         if (it->second.if_nocache || it->second.expiration_time < time(0)) {
+            if (it->second.if_nocache){
+                // print validate
+                logfile.validate(client);
+            }
+            else if (it->second.expiration_time < time(0)){
+                // print expired
+                logfile.expired(client, it->second);
+            }
             cout << "need revalidation" << endl;
             if (!it->second.etag.empty()) {
                 cout << "add etag" << endl;
@@ -373,14 +382,18 @@ void MethodGet(int client_fd, int server_fd, Client & client) {
                 // send original request to server
                 sendAll(server_fd, client.content, client.content.size());
             }
+            logfile.re_request(client);
         }
         else {
             // send response and return
-            sendAll(server_fd, it->second.content, it->second.content.size());
+            logfile.valid(client);
+            sendAll(client_fd, it->second.content, it->second.content.size());
+            return;
         }
     }
     else {
         // send original request to server
+        logfile.not_in_cache(client);
         sendAll(server_fd, client.content, client.content.size());
     }
 
@@ -401,10 +414,10 @@ void MethodGet(int client_fd, int server_fd, Client & client) {
         << "expiration_time: " << response_class.expiration_time << endl << "if validate: " << response_class.if_validate
         << endl << "age: " << response_class.age << endl << "last_modified: " << response_class.last_modified << endl
         << "etag: " << response_class.etag << endl << response_class.content.data() << endl;
-
+    logfile.receive_response(client, response_class);
     
-    unordered_map<string, Response>::iterator it_incache = cache.find(client.url);
-    if (response_class.status == "304" && it_incache != cache.end()){
+    // unordered_map<string, Response>::iterator it_incache = cache.find(client.url);
+    if (response_class.status == "304" && it != cache.end()){
         cout << "304 received, return cached content" << endl;
         cout << it->first << endl;
         sendAll(client_fd, it->second.content, it->second.content.size());   
@@ -416,16 +429,23 @@ void MethodGet(int client_fd, int server_fd, Client & client) {
             }
             cout << "saved response in cache" << endl;
             cache.insert(make_pair(response_class.url, response_class));
+            if (response_class.if_nocache) {
+                logfile.need_revalidate(client);
+            } else {
+                logfile.expire_cache(client, response_class);
+            }
+        } else {
+            logfile.not_cacheable(client);
         }
         sendAll(client_fd, response, response.size());
     } else {
         sendAll(client_fd, response, response.size());
     }
-    
+    logfile.responding(client, response_class);
 }
 
 
-void handleRequest(int client_connection_fd) {
+void handleRequest(int client_connection_fd, string ipaddr) {
     vector<char> client_request = recvHeader(client_connection_fd);
     if(client_request.size() == 0){
         cout << "strange behavior of new accept" << endl;
@@ -445,12 +465,19 @@ void handleRequest(int client_connection_fd) {
     cout << "client full request: " << endl;
     cout << client_request.data() << endl;
 
-    Client client(client_request); // pass request header + body
+    Client client(client_request, ipaddr); // pass request header + body
+    
+    logfile.request_from_client(client);
+    
     cout << "port:\n" << client.port << endl;
     cout << "method:\n" << client.method << "host:\n" << client.host << "url:\n" << client.url << "body:\n" << client.content.data() << endl;
     cout << "HTTP: " << client.httpVersion << endl;
     ClientSocket client_socket(client.host, client.port);
-    client_socket.init_socket();
+    
+    if (client_socket.init_socket() == -1) {
+        logfile.err_unresolvable_method(client);
+        return;
+    }
     // deal with this shit
     if (client.method == "CONNECT"){
         MethodCon(client_connection_fd, client_socket.socket_fd, client);
