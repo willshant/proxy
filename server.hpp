@@ -107,8 +107,6 @@ public:
         memset(&host_info, 0, sizeof(host_info));
         host_info.ai_family   = AF_UNSPEC;
         host_info.ai_socktype = SOCK_STREAM;
-        // cout << "host name = "  << hostname.c_str() << endl;
-        // cout << "port" << port << endl;
         status = getaddrinfo(hostname.c_str(), port, &host_info, &host_info_list);
         if (status != 0) {
             cerr << "Error: cannot get address info for host" << endl;
@@ -147,13 +145,11 @@ vector<char> recvHeader(int fd){
 
     while(true){
         memset(buffer, 0, 1);
-        // cout << "before recv" << endl;
         if (recv(fd, buffer, 1, 0) == 0){
             cout << "receive return 0" << endl;
             res.resize(0, 0);
             return res;
         }
-        // cout << "received char: " << buffer << endl;
         res.push_back(buffer[0]);
 
         if (buffer[0] == '\r'){
@@ -188,7 +184,6 @@ vector<char> parseHeader(int fd, vector<char> & client_request_header) {
     vector<char> body;
     char * pos1 = strstr(client_request_header.data(), "Content-Length:");
     char * pos2 = strstr(client_request_header.data(), "Transfer-Encoding:");
-    // cout << "in parseheader\n" << pos1 << endl;
     if (pos2 != NULL){
         cout << "transfer encoding loop" << endl;
         client_request_header.pop_back();
@@ -208,37 +203,13 @@ vector<char> parseHeader(int fd, vector<char> & client_request_header) {
         }
         return buf;
     }
-    // if (pos1 != NULL || pos1 != NULL) {
-    //     cout << "content length or transfer encoding not null" << endl;
-    //     return recvHeader(fd);
-    // }
     cout << "no header" << endl;
     return body;
 }
 
-
-// vector<char> recvAll(int fd) {
-//     vector<char> buffer(4096, 0);
-//     int index = 0;
-//     int i = 1;
-//     while (true) {
-//         int byte_read = recv(fd, &buffer.data()[index] , (4096 * i) - index, 0);
-//         cout << "byte read: " << byte_read << endl;
-//         if (byte_read == 0) {
-//             break;
-//         }
-//         index += byte_read;
-//         if (index == 4096 * i) {
-//             buffer.resize(4096 * (++i), 0);
-//         } 
-//     }
-//     return buffer;
-// }
-
 void sendAll(int fd, vector<char> & target, int size){
     int sum = 0;
     while(sum != size){
-//        cout << "enter" << endl;
         int i = send(fd, target.data() + sum, size-sum, 0);
         if (i == -1) {
             cout << "error in send" << endl;
@@ -248,7 +219,6 @@ void sendAll(int fd, vector<char> & target, int size){
         cout << i << endl;
         sum += i;
     }
-//    cout << "exit" << endl;
 }
 
 void sendConnect(int fd, const char * buffer, int size){
@@ -296,37 +266,19 @@ void MethodCon(int client_fd, int server_fd, Client & client){
         else {
             for (int i = 0; i <= fd_max; ++i){
                 if (FD_ISSET(i, &sub) && (i == client_fd || i == server_fd)){
-                    // cout << "received fd in select, fd = " << i << endl;
-                    // memset(buffer, 0, 4096);
-                    // status = recv(i, buffer, 4096, 0);
-                    // int exitflag = 1;
-                    // vector<char> message = recvHeader(i, exitflag);
                     vector<char> message(1024, 0);
                     status = recv(i, message.data(), 1024, 0);
-                    // cout << "byte received: " << status << endl;
-                    
-                    // cout << "buffer received: " << message.data() << endl;
-                    // cout << "receive length: " << message.size() << endl;
                     if (status == 0 || status == -1){
                         cout << "exit flag is set to 1" << endl;
                         exitFlag = 1;
                         break;
                     }
                     message.resize(status);
-                    // int size = sizeof(buffer);
                     if (i == client_fd){
-                        // cout << "forward message from client to server, fd to = " << server_fd << endl;
-                        // sendAll(server_fd, message, message.size());
-                        // cout << "before send" << endl;
                         send(server_fd, message.data(), status, 0);
-                        // cout << "after send" << endl;
                     }
                     else if (i == server_fd) {
-                        // cout << "forward message from server to client, fd to = " << client_fd << endl;
-                        // sendAll(client_fd, message, message.size());
-                        // cout << "before send" << endl;
                         send(client_fd, message.data(), status, 0);
-                        // cout << "after send" << endl;
                     }
                 }
             }
@@ -343,10 +295,6 @@ void MethodCon(int client_fd, int server_fd, Client & client){
 void MethodPost(int server_fd, int client_fd, Client & client){
     sendAll(server_fd, client.content, client.content.size());
     vector<char> response = recvHeader(server_fd);
-    // if(response.size() == 0){
-    //     cout << "strange behavior of new accept" << endl;
-    //     return;
-    // }
     vector<char> response_body = parseHeader(server_fd, response);
     if (response_body.size() != 0) {
         response.insert(response.end(), response_body.begin(), response_body.end());
