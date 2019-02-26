@@ -1,3 +1,4 @@
+
 #include <string>
 #include <cstdio>
 #include <string.h>
@@ -273,7 +274,7 @@ public:
         if (status == "301") {
             size_t stat = header.find("Location:");
             if (stat != string::npos) {
-                size_t loc_end = header.find("\r\n", stat);
+                size_t loc_end = header.find("\r\n");
                 location = header.substr(stat + 10, loc_end - stat - 10);
             }
         }

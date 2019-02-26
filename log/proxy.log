@@ -1,82 +1,16 @@
-0: "CONNECT socket.jiuzhang.com:443 HTTP/1.1" from 10.197.52.249 @ Tue Feb 26 14:44:25 2019
-0: Responding HTTP/1.1 200 Connection Established
-
-
-1: "CONNECT www.google-analytics.com:443 HTTP/1.1" from 10.197.52.249 @ Tue Feb 26 14:44:26 2019
-2: "CONNECT developer.mozilla.org:443 HTTP/1.1" from 10.197.52.249 @ Tue Feb 26 14:44:26 2019
-3: "CONNECT socket.jiuzhang.com:443 HTTP/1.1" from 10.197.52.249 @ Tue Feb 26 14:44:26 2019
-1: Responding HTTP/1.1 200 Connection Established
-
-
-3: Responding HTTP/1.1 200 Connection Established
-
-
-2: Responding HTTP/1.1 200 Connection Established
-
-
-4: "CONNECT interactive-examples.mdn.mozilla.net:443 HTTP/1.1" from 10.197.52.249 @ Tue Feb 26 14:44:26 2019
-4: Responding HTTP/1.1 200 Connection Established
-
-
-5: "CONNECT socket.jiuzhang.com:443 HTTP/1.1" from 10.197.52.249 @ Tue Feb 26 14:44:26 2019
-5: Responding HTTP/1.1 200 Connection Established
-
-
-6: "CONNECT push.piazza.com:443 HTTP/1.1" from 10.197.52.249 @ Tue Feb 26 14:44:28 2019
-6: Responding HTTP/1.1 200 Connection Established
-
-
-7: "CONNECT socket.jiuzhang.com:443 HTTP/1.1" from 10.197.52.249 @ Tue Feb 26 14:44:33 2019
-7: Responding HTTP/1.1 200 Connection Established
-
-
-8: "CONNECT socket.jiuzhang.com:443 HTTP/1.1" from 10.197.52.249 @ Tue Feb 26 14:44:37 2019
-8: Responding HTTP/1.1 200 Connection Established
-
-
-9: "CONNECT gsp-ssl.ls.apple.com:443 HTTP/1.1" from 10.197.52.249 @ Tue Feb 26 14:44:42 2019
-9: Responding HTTP/1.1 200 Connection Established
-
-
-2: Tunnel closed
-1: Tunnel closed
-4: Tunnel closed
-0: Tunnel closed
-10: "CONNECT mtalk.google.com:5228 HTTP/1.1" from 10.197.52.249 @ Tue Feb 26 14:44:48 2019
-10: Responding HTTP/1.1 200 Connection Established
-
-
-11: "HEAD http://yjvusdnwluv/ HTTP/1.1" from 10.197.52.249 @ Tue Feb 26 14:44:49 2019
-12: "HEAD http://zjlqnjsbwha/ HTTP/1.1" from 10.197.52.249 @ Tue Feb 26 14:44:49 2019
-13: "HEAD http://ndzrebgjekp/ HTTP/1.1" from 10.197.52.249 @ Tue Feb 26 14:44:49 2019
-11: ERROR Unresolvable Url
-12: ERROR Unresolvable Url
-13: ERROR Unresolvable Url
-14: "CONNECT piazza.com:443 HTTP/1.1" from 10.197.52.249 @ Tue Feb 26 14:44:51 2019
-14: Responding HTTP/1.1 200 Connection Established
-
-
-15: "CONNECT outlook.office365.com:443 HTTP/1.1" from 10.197.52.249 @ Tue Feb 26 14:44:52 2019
-16: "CONNECT p66-caldav.icloud.com:443 HTTP/1.1" from 10.197.52.249 @ Tue Feb 26 14:44:52 2019
-15: Responding HTTP/1.1 200 Connection Established
-
-
-16: Responding HTTP/1.1 200 Connection Established
-
-
-17: "CONNECT outlook.office365.com:443 HTTP/1.1" from 10.197.52.249 @ Tue Feb 26 14:44:54 2019
-17: Responding HTTP/1.1 200 Connection Established
-
-
-18: "CONNECT p69-calendars.icloud.com:443 HTTP/1.1" from 10.197.52.249 @ Tue Feb 26 14:44:54 2019
-19: "CONNECT p66-caldav.icloud.com:443 HTTP/1.1" from 10.197.52.249 @ Tue Feb 26 14:44:54 2019
-19: Responding HTTP/1.1 200 Connection Established
-
-
-18: Responding HTTP/1.1 200 Connection Established
-
-
-20: "CONNECT p66-keyvalueservice.icloud.com:443 HTTP/1.1" from 10.197.52.249 @ Tue Feb 26 14:44:59 2019
-20: Responding HTTP/1.1 200 Connection Established
-
-
+0: "GET http://beej-zhcn.netdpi.net/07-advanced-technology/7-2-select HTTP/1.1" from 10.197.52.249 @ Tue Feb 26 18:53:42 2019
+0: not in cache
+0: Requesting GET http://beej-zhcn.netdpi.net/07-advanced-technology/7-2-select HTTP/1.1 from beej-zhcn.netdpi.net
+0: Received HTTP/1.1 304 Not Modified from beej-zhcn.netdpi.net
+0: Responding HTTP/1.1 304 Not Modified
+1: "GET http://csi.gstatic.com/csi?v=3&s=jotspot&action=load,text,user_page&it=wtsrt_.10,tbsd_.51,tbnd_.0&srt=10&tbsrt=61&tran=15&rt=scl.53,cl.75,sjl.423,jl.502,render.514,ol.1390 HTTP/1.1" from 10.197.52.249 @ Tue Feb 26 18:53:44 2019
+2: "GET http://translate.google.com/translate_a/element.js?cb=translateCallback&hl=en HTTP/1.1" from 10.197.52.249 @ Tue Feb 26 18:53:44 2019
+1: not in cache
+1: Requesting GET http://csi.gstatic.com/csi?v=3&s=jotspot&action=load,text,user_page&it=wtsrt_.10,tbsd_.51,tbnd_.0&srt=10&tbsrt=61&tran=15&rt=scl.53,cl.75,sjl.423,jl.502,render.514,ol.1390 HTTP/1.1 from csi.gstatic.com
+2: not in cache
+2: Requesting GET http://translate.google.com/translate_a/element.js?cb=translateCallback&hl=en HTTP/1.1 from translate.google.com
+1: Received HTTP/1.1 204 No Content from csi.gstatic.com
+1: Responding HTTP/1.1 204 No Content
+2: Received HTTP/1.1 200 OK from translate.google.com
+2: cached, but requires re-validation
+2: Responding HTTP/1.1 200 OK
