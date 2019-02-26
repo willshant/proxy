@@ -154,7 +154,7 @@ public:
     time_t receive;
     Response(vector<char> & response_content, string & url): 
         url(url), if_cache(false), if_nocache(false), 
-        if_validate(false), expiration_time(time(0)), age(0), 
+        if_validate(false), expiration_time(time(0)), age(0),  
         content(response_content),receive(time(0)) {
         char * header_end = strstr(response_content.data(), "\r\n\r\n");
         char temp[8192];
@@ -213,22 +213,6 @@ public:
                 time_t now = time(0);
                 expiration_time = now + age - this->age;
             }
-            
-            
-            size_t pos_etag;
-            if ((pos_etag = header.find("ETag: ")) != string::npos) {
-                cout << "etag position: " << pos_etag << endl;
-                pos_etag += 6;
-                size_t pos_end = header.find("\r\n", pos_etag);
-                etag = header.substr(pos_etag, pos_end - pos_etag);
-            }
-            size_t pos_lastmod;
-            if ((pos_lastmod = header.find("Last-Modified: ")) != string::npos) {
-                pos_lastmod += 15;
-                size_t pos_end = header.find("\r\n", pos_lastmod);
-                last_modified = header.substr(pos_lastmod, pos_end - pos_lastmod);
-            }
-
             if_cache = true;
         }
         else {
@@ -257,6 +241,19 @@ public:
                 //scan_httpdate(header.substr(pos1 + 1, pos2 - pos1 - 1).c_str, &x);
             }
             if_cache = true;
+        }
+        size_t pos_etag = header.find("ETag: ");
+        if (pos_etag != string::npos) {
+            cout << "etag position: " << pos_etag << endl;
+            pos_etag += 6;
+            size_t pos_end = header.find("\r\n", pos_etag);
+            etag = header.substr(pos_etag, pos_end - pos_etag);
+        }
+        size_t pos_lastmod = header.find("Last-Modified: ");
+        if (pos_lastmod != string::npos) {
+            pos_lastmod += 15;
+            size_t pos_end = header.find("\r\n", pos_lastmod);
+            last_modified = header.substr(pos_lastmod, pos_end - pos_lastmod);
         }
     }
 };
