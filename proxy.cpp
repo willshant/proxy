@@ -21,7 +21,8 @@ int main() {
         // socket_fd will keep 
         if (client_connection_fd == -1) {
             cerr << "Error: cannot accept connection on socket" << endl;
-            return -1;
+            continue;
+            // return -1;
         } //if
         // multithreading starts
         thread(handleRequest, client_connection_fd, ipaddr).detach();

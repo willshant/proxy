@@ -1,30 +1,87 @@
-0: "CONNECT push.piazza.com:443 HTTP/1.1" from 10.197.61.161 @ Tue Feb 26 23:44:17 2019
+0: "CONNECT bolt.dropbox.com:443 HTTP/1.1" from 10.197.61.161 @ Wed Feb 27 12:14:15 2019
+1: "CONNECT bolt.dropbox.com:443 HTTP/1.1" from 10.197.61.161 @ Wed Feb 27 12:14:15 2019
 0: Responding HTTP/1.1 200 Connection Established
-1: "GET http://people.duke.edu/~bmr23/ece568/class.html HTTP/1.1" from 10.197.61.161 @ Tue Feb 26 23:44:23 2019
-1: not in cache
-1: Requesting GET http://people.duke.edu/~bmr23/ece568/class.html HTTP/1.1 from people.duke.edu
-1: Received HTTP/1.1 304 Not Modified from people.duke.edu
-1: Responding HTTP/1.1 304 Not Modified
-2: "CONNECT www.google.com:443 HTTP/1.1" from 10.197.61.161 @ Tue Feb 26 23:44:23 2019
+1: Responding HTTP/1.1 200 Connection Established
+2: "CONNECT mtalk.google.com:5228 HTTP/1.1" from 10.197.61.161 @ Wed Feb 27 12:14:15 2019
 2: Responding HTTP/1.1 200 Connection Established
-3: "CONNECT vortex.data.microsoft.com:443 HTTP/1.1" from 10.197.61.161 @ Tue Feb 26 23:44:23 2019
+3: "CONNECT clients4.google.com:443 HTTP/1.1" from 10.197.61.161 @ Wed Feb 27 12:14:16 2019
 3: Responding HTTP/1.1 200 Connection Established
-3: Tunnel closed
-4: "CONNECT clients4.google.com:443 HTTP/1.1" from 10.197.61.161 @ Tue Feb 26 23:44:25 2019
-4: Responding HTTP/1.1 200 Connection Established
-5: "CONNECT polka.typekit.com:443 HTTP/1.1" from 10.197.61.161 @ Tue Feb 26 23:44:26 2019
-5: Responding HTTP/1.1 200 Connection Established
-6: "CONNECT scss.adobesc.com:443 HTTP/1.1" from 10.197.61.161 @ Tue Feb 26 23:44:26 2019
-6: Responding HTTP/1.1 200 Connection Established
-6: Tunnel closed
-7: "CONNECT acp-ss-ue1.adobe.io:443 HTTP/1.1" from 10.197.61.161 @ Tue Feb 26 23:44:26 2019
+4: "HEAD http://faerwlwyzctcju/ HTTP/1.1" from 10.197.61.161 @ Wed Feb 27 12:14:16 2019
+5: "HEAD http://uqgxqvz/ HTTP/1.1" from 10.197.61.161 @ Wed Feb 27 12:14:16 2019
+6: "HEAD http://maeywastvg/ HTTP/1.1" from 10.197.61.161 @ Wed Feb 27 12:14:16 2019
+4: ERROR Unresolvable Url
+6: ERROR Unresolvable Url
+5: ERROR Unresolvable Url
+7: "CONNECT www.google.com:443 HTTP/1.1" from 10.197.61.161 @ Wed Feb 27 12:14:17 2019
 7: Responding HTTP/1.1 200 Connection Established
-7: Tunnel closed
-8: "CONNECT ss-prod-ue1-notif-21.aws.adobess.com:443 HTTP/1.1" from 10.197.61.161 @ Tue Feb 26 23:44:26 2019
+8: "CONNECT www.google.com:443 HTTP/1.1" from 10.197.61.161 @ Wed Feb 27 12:14:17 2019
 8: Responding HTTP/1.1 200 Connection Established
-8: Tunnel closed
-9: "CONNECT acp-ss-ue1.adobe.io:443 HTTP/1.1" from 10.197.61.161 @ Tue Feb 26 23:44:27 2019
+9: "CONNECT s2.googleusercontent.com:443 HTTP/1.1" from 10.197.61.161 @ Wed Feb 27 12:14:18 2019
 9: Responding HTTP/1.1 200 Connection Established
-9: Tunnel closed
-10: "CONNECT ss-prod-ue1-notif-21.aws.adobess.com:443 HTTP/1.1" from 10.197.61.161 @ Tue Feb 26 23:44:27 2019
+10: "CONNECT ogs.google.com:443 HTTP/1.1" from 10.197.61.161 @ Wed Feb 27 12:14:18 2019
 10: Responding HTTP/1.1 200 Connection Established
+11: "CONNECT outlook.office365.com:443 HTTP/1.1" from 10.197.61.161 @ Wed Feb 27 12:14:19 2019
+11: Responding HTTP/1.1 200 Connection Established
+12: "CONNECT outlook.office365.com:443 HTTP/1.1" from 10.197.61.161 @ Wed Feb 27 12:14:19 2019
+12: Responding HTTP/1.1 200 Connection Established
+13: "CONNECT p16-caldav.icloud.com:443 HTTP/1.1" from 10.197.61.161 @ Wed Feb 27 12:14:20 2019
+13: Responding HTTP/1.1 200 Connection Established
+14: "CONNECT www.youtube.com:443 HTTP/1.1" from 10.197.61.161 @ Wed Feb 27 12:14:20 2019
+14: Responding HTTP/1.1 200 Connection Established
+15: "CONNECT googleads.g.doubleclick.net:443 HTTP/1.1" from 10.197.61.161 @ Wed Feb 27 12:14:21 2019
+15: Responding HTTP/1.1 200 Connection Established
+16: "CONNECT clients1.google.com:443 HTTP/1.1" from 10.197.61.161 @ Wed Feb 27 12:14:21 2019
+16: Responding HTTP/1.1 200 Connection Established
+17: "CONNECT i.ytimg.com:443 HTTP/1.1" from 10.197.61.161 @ Wed Feb 27 12:14:22 2019
+17: Responding HTTP/1.1 200 Connection Established
+18: "CONNECT pubads.g.doubleclick.net:443 HTTP/1.1" from 10.197.61.161 @ Wed Feb 27 12:14:22 2019
+18: Responding HTTP/1.1 200 Connection Established
+19: "CONNECT ad.doubleclick.net:443 HTTP/1.1" from 10.197.61.161 @ Wed Feb 27 12:14:22 2019
+20: "CONNECT securepubads.g.doubleclick.net:443 HTTP/1.1" from 10.197.61.161 @ Wed Feb 27 12:14:22 2019
+19: Responding HTTP/1.1 200 Connection Established
+20: Responding HTTP/1.1 200 Connection Established
+21: "CONNECT secure.insightexpressai.com:443 HTTP/1.1" from 10.197.61.161 @ Wed Feb 27 12:14:22 2019
+21: Responding HTTP/1.1 200 Connection Established
+21: Tunnel closed
+22: "CONNECT p16-contacts.icloud.com:443 HTTP/1.1" from 10.197.61.161 @ Wed Feb 27 12:14:30 2019
+22: Responding HTTP/1.1 200 Connection Established
+23: "CONNECT outlook.office365.com:443 HTTP/1.1" from 10.197.61.161 @ Wed Feb 27 12:14:30 2019
+23: Responding HTTP/1.1 200 Connection Established
+24: "CONNECT outlook.office365.com:443 HTTP/1.1" from 10.197.61.161 @ Wed Feb 27 12:14:31 2019
+24: Responding HTTP/1.1 200 Connection Established
+25: "CONNECT outlook.office365.com:443 HTTP/1.1" from 10.197.61.161 @ Wed Feb 27 12:14:32 2019
+25: Responding HTTP/1.1 200 Connection Established
+26: "CONNECT ss-prod-ue1-notif-21.aws.adobess.com:443 HTTP/1.1" from 10.197.61.161 @ Wed Feb 27 12:14:33 2019
+26: Responding HTTP/1.1 200 Connection Established
+25: Tunnel closed
+23: Tunnel closed
+24: Tunnel closed
+27: "CONNECT clientservices.googleapis.com:443 HTTP/1.1" from 10.197.61.161 @ Wed Feb 27 12:14:35 2019
+27: Responding HTTP/1.1 200 Connection Established
+22: Tunnel closed
+13: Tunnel closed
+28: "CONNECT outlook.office365.com:443 HTTP/1.1" from 10.197.61.161 @ Wed Feb 27 12:14:56 2019
+29: "CONNECT outlook.office365.com:443 HTTP/1.1" from 10.197.61.161 @ Wed Feb 27 12:14:56 2019
+30: "CONNECT outlook.office365.com:443 HTTP/1.1" from 10.197.61.161 @ Wed Feb 27 12:14:56 2019
+31: "CONNECT outlook.office365.com:443 HTTP/1.1" from 10.197.61.161 @ Wed Feb 27 12:14:56 2019
+32: "CONNECT outlook.office365.com:443 HTTP/1.1" from 10.197.61.161 @ Wed Feb 27 12:14:56 2019
+33: "CONNECT outlook.office365.com:443 HTTP/1.1" from 10.197.61.161 @ Wed Feb 27 12:14:56 2019
+34: "CONNECT outlook.office365.com:443 HTTP/1.1" from 10.197.61.161 @ Wed Feb 27 12:14:56 2019
+35: "CONNECT outlook.office365.com:443 HTTP/1.1" from 10.197.61.161 @ Wed Feb 27 12:14:56 2019
+36: "CONNECT outlook.office365.com:443 HTTP/1.1" from 10.197.61.161 @ Wed Feb 27 12:14:56 2019
+37: "CONNECT outlook.office365.com:443 HTTP/1.1" from 10.197.61.161 @ Wed Feb 27 12:14:56 2019
+28: Responding HTTP/1.1 200 Connection Established
+29: Responding HTTP/1.1 200 Connection Established
+38: "CONNECT outlook.office365.com:443 HTTP/1.1" from 10.197.61.161 @ Wed Feb 27 12:14:56 2019
+39: "CONNECT outlook.office365.com:443 HTTP/1.1" from 10.197.61.161 @ Wed Feb 27 12:14:56 2019
+30: Responding HTTP/1.1 200 Connection Established
+no-id: connection closed from client
+31: Responding HTTP/1.1 200 Connection Established
+32: Responding HTTP/1.1 200 Connection Established
+33: Responding HTTP/1.1 200 Connection Established
+34: Responding HTTP/1.1 200 Connection Established
+35: Responding HTTP/1.1 200 Connection Established
+36: Responding HTTP/1.1 200 Connection Established
+37: Responding HTTP/1.1 200 Connection Established
+39: Responding HTTP/1.1 200 Connection Established
+38: Responding HTTP/1.1 200 Connection Established
