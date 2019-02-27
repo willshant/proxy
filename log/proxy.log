@@ -1,16 +1,79 @@
-0: "GET http://beej-zhcn.netdpi.net/07-advanced-technology/7-2-select HTTP/1.1" from 10.197.52.249 @ Tue Feb 26 18:53:42 2019
-0: not in cache
-0: Requesting GET http://beej-zhcn.netdpi.net/07-advanced-technology/7-2-select HTTP/1.1 from beej-zhcn.netdpi.net
-0: Received HTTP/1.1 304 Not Modified from beej-zhcn.netdpi.net
-0: Responding HTTP/1.1 304 Not Modified
-1: "GET http://csi.gstatic.com/csi?v=3&s=jotspot&action=load,text,user_page&it=wtsrt_.10,tbsd_.51,tbnd_.0&srt=10&tbsrt=61&tran=15&rt=scl.53,cl.75,sjl.423,jl.502,render.514,ol.1390 HTTP/1.1" from 10.197.52.249 @ Tue Feb 26 18:53:44 2019
-2: "GET http://translate.google.com/translate_a/element.js?cb=translateCallback&hl=en HTTP/1.1" from 10.197.52.249 @ Tue Feb 26 18:53:44 2019
-1: not in cache
-1: Requesting GET http://csi.gstatic.com/csi?v=3&s=jotspot&action=load,text,user_page&it=wtsrt_.10,tbsd_.51,tbnd_.0&srt=10&tbsrt=61&tran=15&rt=scl.53,cl.75,sjl.423,jl.502,render.514,ol.1390 HTTP/1.1 from csi.gstatic.com
-2: not in cache
-2: Requesting GET http://translate.google.com/translate_a/element.js?cb=translateCallback&hl=en HTTP/1.1 from translate.google.com
-1: Received HTTP/1.1 204 No Content from csi.gstatic.com
-1: Responding HTTP/1.1 204 No Content
-2: Received HTTP/1.1 200 OK from translate.google.com
-2: cached, but requires re-validation
-2: Responding HTTP/1.1 200 OK
+1: "CONNECT socket.jiuzhang.com:443 HTTP/1.1" from 10.197.52.249 @ Tue Feb 26 20:21:20 2019
+2: "CONNECT socket.jiuzhang.com:443 HTTP/1.1" from 10.197.52.249 @ Tue Feb 26 20:21:20 2019
+0: "CONNECT socket.jiuzhang.com:443 HTTP/1.1" from 10.197.52.249 @ Tue Feb 26 20:21:20 2019
+3: "CONNECT socket.jiuzhang.com:443 HTTP/1.1" from 10.197.52.249 @ Tue Feb 26 20:21:20 2019
+4: "CONNECT socket.jiuzhang.com:443 HTTP/1.1" from 10.197.52.249 @ Tue Feb 26 20:21:20 2019
+5: "CONNECT socket.jiuzhang.com:443 HTTP/1.1" from 10.197.52.249 @ Tue Feb 26 20:21:20 2019
+6: "CONNECT socket.jiuzhang.com:443 HTTP/1.1" from 10.197.52.249 @ Tue Feb 26 20:21:20 2019
+7: "CONNECT socket.jiuzhang.com:443 HTTP/1.1" from 10.197.52.249 @ Tue Feb 26 20:21:20 2019
+8: "CONNECT socket.jiuzhang.com:443 HTTP/1.1" from 10.197.52.249 @ Tue Feb 26 20:21:20 2019
+9: "CONNECT socket.jiuzhang.com:443 HTTP/1.1" from 10.197.52.249 @ Tue Feb 26 20:21:20 2019
+10: "CONNECT socket.jiuzhang.com:443 HTTP/1.1" from 10.197.52.249 @ Tue Feb 26 20:21:20 2019
+4: Responding HTTP/1.1 200 Connection Established
+2: Responding HTTP/1.1 200 Connection Established
+8: Responding HTTP/1.1 200 Connection Established
+9: Responding HTTP/1.1 200 Connection Established
+5: Responding HTTP/1.1 200 Connection Established
+10: Responding HTTP/1.1 200 Connection Established
+6: Responding HTTP/1.1 200 Connection Established
+7: Responding HTTP/1.1 200 Connection Established
+11: "CONNECT socket.jiuzhang.com:443 HTTP/1.1" from 10.197.52.249 @ Tue Feb 26 20:21:20 2019
+1: Responding HTTP/1.1 200 Connection Established
+0: Responding HTTP/1.1 200 Connection Established
+3: Responding HTTP/1.1 200 Connection Established
+11: Responding HTTP/1.1 200 Connection Established
+5: Tunnel closed
+10: Tunnel closed
+8: Tunnel closed
+7: Tunnel closed
+4: Tunnel closed
+2: Tunnel closed
+12: "CONNECT static.addtoany.com:443 HTTP/1.1" from 10.197.52.249 @ Tue Feb 26 20:21:23 2019
+13: "CONNECT img-prod-cms-rt-microsoft-com.akamaized.net:443 HTTP/1.1" from 10.197.52.249 @ Tue Feb 26 20:21:23 2019
+12: Responding HTTP/1.1 200 Connection Established
+13: Responding HTTP/1.1 200 Connection Established
+14: "CONNECT devblogs.microsoft.com:443 HTTP/1.1" from 10.197.52.249 @ Tue Feb 26 20:21:23 2019
+15: "CONNECT devblogs.microsoft.com:443 HTTP/1.1" from 10.197.52.249 @ Tue Feb 26 20:21:24 2019
+16: "CONNECT statics-uhf-eus.akamaized.net:443 HTTP/1.1" from 10.197.52.249 @ Tue Feb 26 20:21:24 2019
+17: "CONNECT secure.gravatar.com:443 HTTP/1.1" from 10.197.52.249 @ Tue Feb 26 20:21:24 2019
+18: "CONNECT www.microsoft.com:443 HTTP/1.1" from 10.197.52.249 @ Tue Feb 26 20:21:24 2019
+19: "CONNECT www.googletagmanager.com:443 HTTP/1.1" from 10.197.52.249 @ Tue Feb 26 20:21:24 2019
+17: Responding HTTP/1.1 200 Connection Established
+20: "CONNECT connect.facebook.net:443 HTTP/1.1" from 10.197.52.249 @ Tue Feb 26 20:21:24 2019
+16: Responding HTTP/1.1 200 Connection Established
+18: Responding HTTP/1.1 200 Connection Established
+19: Responding HTTP/1.1 200 Connection Established
+15: Responding HTTP/1.1 200 Connection Established
+14: Responding HTTP/1.1 200 Connection Established
+20: Responding HTTP/1.1 200 Connection Established
+21: "CONNECT devblogs.microsoft.com:443 HTTP/1.1" from 10.197.52.249 @ Tue Feb 26 20:21:24 2019
+22: "CONNECT statics-uhf-eus.akamaized.net:443 HTTP/1.1" from 10.197.52.249 @ Tue Feb 26 20:21:24 2019
+23: "CONNECT statics-uhf-eus.akamaized.net:443 HTTP/1.1" from 10.197.52.249 @ Tue Feb 26 20:21:24 2019
+22: Responding HTTP/1.1 200 Connection Established
+21: Responding HTTP/1.1 200 Connection Established
+23: Responding HTTP/1.1 200 Connection Established
+24: "CONNECT devblogs.microsoft.com:443 HTTP/1.1" from 10.197.52.249 @ Tue Feb 26 20:21:24 2019
+24: Responding HTTP/1.1 200 Connection Established
+25: "CONNECT www.microsoft.com:443 HTTP/1.1" from 10.197.52.249 @ Tue Feb 26 20:21:24 2019
+26: "CONNECT devblogs.microsoft.com:443 HTTP/1.1" from 10.197.52.249 @ Tue Feb 26 20:21:24 2019
+27: "CONNECT devblogs.microsoft.com:443 HTTP/1.1" from 10.197.52.249 @ Tue Feb 26 20:21:24 2019
+28: "CONNECT w.usabilla.com:443 HTTP/1.1" from 10.197.52.249 @ Tue Feb 26 20:21:24 2019
+25: Responding HTTP/1.1 200 Connection Established
+27: Responding HTTP/1.1 200 Connection Established
+26: Responding HTTP/1.1 200 Connection Established
+28: Responding HTTP/1.1 200 Connection Established
+29: "CONNECT www.google-analytics.com:443 HTTP/1.1" from 10.197.52.249 @ Tue Feb 26 20:21:24 2019
+29: Responding HTTP/1.1 200 Connection Established
+30: "CONNECT stats.g.doubleclick.net:443 HTTP/1.1" from 10.197.52.249 @ Tue Feb 26 20:21:25 2019
+30: Responding HTTP/1.1 200 Connection Established
+31: "CONNECT js-agent.newrelic.com:443 HTTP/1.1" from 10.197.52.249 @ Tue Feb 26 20:21:25 2019
+31: Responding HTTP/1.1 200 Connection Established
+32: "CONNECT d6tizftlrpuof.cloudfront.net:443 HTTP/1.1" from 10.197.52.249 @ Tue Feb 26 20:21:25 2019
+33: "CONNECT uhf.microsoft.com:443 HTTP/1.1" from 10.197.52.249 @ Tue Feb 26 20:21:25 2019
+32: Responding HTTP/1.1 200 Connection Established
+33: Responding HTTP/1.1 200 Connection Established
+34: "CONNECT bam.nr-data.net:443 HTTP/1.1" from 10.197.52.249 @ Tue Feb 26 20:21:25 2019
+34: Responding HTTP/1.1 200 Connection Established
+35: "CONNECT bam.nr-data.net:443 HTTP/1.1" from 10.197.52.249 @ Tue Feb 26 20:21:25 2019
+35: Responding HTTP/1.1 200 Connection Established
+18: Tunnel closed

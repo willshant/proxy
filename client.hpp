@@ -8,6 +8,7 @@
 #include <unordered_map>
 #include <mutex> 
 #include <list>
+#include <shared_mutex>
 
 using namespace std;
 
@@ -423,23 +424,34 @@ public:
 
 Log logfile(string("/home/hx54/568/proxy/log/proxy.log"));
 
+
 // derived from leetcode LRU cache C++ solusions
 class Cache {
+    // mutable mutex cache_lock;
+    mutable shared_timed_mutex cache_lock;
     int capacity;
     list<string> mlist;
     unordered_map<string, pair<Response, list<string>::iterator>> cache;
 public:
     Cache(int cap) : capacity(cap) {}
     Response *find(string url) {
+        cache_lock.lock_shared();
         unordered_map<string, pair<Response, list<string>::iterator>>::iterator it = cache.find(url);
+        cache_lock.unlock_shared();
+        cache_lock.lock();
         if (it == cache.end()) {
+            cache_lock.unlock();
             return NULL;
         }
         move_to_front(it);
+        cache_lock.unlock();
         return &(it->second.first);
     }
     void insert(string url,  Response & resp) {
+        cache_lock.lock_shared();
         unordered_map<string, pair<Response, list<string>::iterator>>::iterator it = cache.find(url);
+        cache_lock.unlock_shared();
+        cache_lock.lock();
         if (it != cache.end()) {
             move_to_front(it);
         } else {
@@ -449,8 +461,8 @@ public:
             }
             mlist.push_front(url);
         }
-        // cache.insert(url, make_pair(resp, mlist.begin()));
         cache[url] = pair<Response, list<string>::iterator>(resp, mlist.begin());
+        cache_lock.unlock();
     }
     void move_to_front(unordered_map<string, pair<Response, list<string>::iterator>>::iterator it) {
         string key_url = it->first;
@@ -459,11 +471,13 @@ public:
             it->second.second = mlist.begin();
     }
     void print() {
+        cache_lock.lock_shared();
         unordered_map<string, pair<Response, list<string>::iterator>>::iterator it = cache.begin();
         cout << "printing cache elements" << endl;
         for (; it != cache.end(); ++it) {
             cout << "url: " << it->first << endl;
             // cout << "first line: " << it->second.first.line1 << endl;
         }
+        cache_lock.unlock_shared();
     }
 };

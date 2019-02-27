@@ -242,7 +242,7 @@ void send200(int fd, Client & client){
     string temp;
     temp = client.httpVersion + " 200 Connection Established\r\n\r\n";
     cout << "send 200 message:" << temp << endl;
-    logfile.responding_code(client, temp);
+    logfile.responding_code(client, temp.substr(0, temp.length() - 4));
     sendConnect(fd, temp.c_str(), temp.size());
 }
 
@@ -250,7 +250,7 @@ void send504(int fd, Client & client){
     string temp;
     temp = client.httpVersion + " 504 Gateway Timeout\r\n\r\n";
     cout << "send 504 message:" << temp << endl;
-    logfile.responding_code(client, temp);
+    logfile.responding_code(client, temp.substr(0, temp.length() - 4));
     sendConnect(fd, temp.c_str(), temp.size());
 }
 
