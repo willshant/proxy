@@ -234,18 +234,15 @@ public:
         else {
             size_t pos;
             if ((pos = header.find("Expires: ")) != string::npos){
-                cout << "expires pos: " << pos << endl;
                 size_t pos1 = header.find(" ", pos); // after Expires:
                 size_t pos2 = header.find("\r\n", pos); // the end of the line
                 pos1 = header.find(" ", pos1 + 1); // after week string
                 string temp = header.substr(pos1 + 1, pos2 - pos1); // day month year time GMT
-                cout << "complete time format: " << temp << endl;
                 size_t pos_ws = temp.find(" "); // whitespace after day
                 vector<string> time;
                 while (pos_ws != string::npos){
                     string tem = temp.substr(0, pos_ws);
                     time.push_back(tem);
-                    cout << "every mistake: " << tem << endl;
                     temp = temp.substr(pos_ws + 1, string::npos);
                     pos_ws = temp.find(" ");
                 }
@@ -260,7 +257,6 @@ public:
         }
         size_t pos_etag = header.find("ETag: ");
         if (pos_etag != string::npos) {
-            cout << "etag position: " << pos_etag << endl;
             pos_etag += 6;
             size_t pos_end = header.find("\r\n", pos_etag);
             etag = header.substr(pos_etag, pos_end - pos_etag);
@@ -332,13 +328,11 @@ public:
         log_file_lock.lock();
         log_file << client.uid << ": \"" << client.line1 << "\" from " << client.ipaddr << " @ " << buffer << endl;
         log_file_lock.unlock();
-        cout << client.uid << ": \"" << client.line1 << "\" from " << client.ipaddr << " @ " << buffer << endl;
     }
     void not_in_cache(Client & client){
         log_file_lock.lock();
         log_file << client.uid << ": not in cache" << endl;
         log_file_lock.unlock();
-        cout << client.uid << ": not in cache" << endl;
     }
     void expired(Client & client, Response & response){
         struct tm * t = localtime(&response.expiration_time);
@@ -348,37 +342,31 @@ public:
         log_file_lock.lock();
         log_file << client.uid << ": in cache, but expired at " << buffer << endl;
         log_file_lock.unlock();
-        cout << client.uid << ": in cache, but expired at " << buffer << endl;
     }
     void validate(Client & client){
         log_file_lock.lock();
         log_file << client.uid << ": in cache, requires validation" << endl;
         log_file_lock.unlock();
-        cout << client.uid << ": in cache, requires validation" << endl;
     }
     void valid(Client & client){
         log_file_lock.lock();
         log_file << client.uid << ": in cache, valid" << endl;
-        cout << client.uid << ": in cache, valid" << endl;
         log_file_lock.unlock();
     }
     void re_request(Client & client){
         log_file_lock.lock();
         log_file << client.uid << ": Requesting " << client.line1 << " from " << client.host << endl;
         log_file_lock.unlock();
-        cout << client.uid << ": Requesting " << client.line1 << " from " << client.host << endl;
     }
     void receive_response(Client & client, Response & response){
         log_file_lock.lock();
         log_file << client.uid << ": Received " << response.line1 << " from " << client.host << endl;
         log_file_lock.unlock();
-        cout << client.uid << ": Received " << response.line1 << " from " << client.host << endl;
     }
     void not_cacheable(Client & client){
         log_file_lock.lock();
         log_file << client.uid << ": not cacheable because Either no-store or private" << endl;
         log_file_lock.unlock();
-        cout << client.uid << ": not cacheable because Either no-store or private" << endl;
     }
     void expire_cache(Client & client, Response & response) {
         struct tm * t = localtime(&response.expiration_time);
@@ -388,41 +376,50 @@ public:
         log_file_lock.lock();
         log_file << client.uid << ": cached, expired at " << buffer << endl;
         log_file_lock.unlock();
-        cout << client.uid << ": cached, expired at " << buffer << endl;
     }
     void need_revalidate(Client & client) {
         log_file_lock.lock();
         log_file << client.uid << ": cached, but requires re-validation" << endl;
         log_file_lock.unlock();
-        cout << client.uid << ": cached, but requires re-validation" << endl;
     }
     void responding(Client & client, Response & response) {
         log_file_lock.lock();
         log_file << client.uid << ": Responding " << response.line1 << endl;
         log_file_lock.unlock();
-        cout << client.uid << ": Responding " << response.line1 << endl;
     }
     void responding_code(Client & client, string code) {
         log_file_lock.lock();
         log_file << client.uid << ": Responding " << code << endl;
         log_file_lock.unlock();
-        cout << client.uid << ": Responding " << code << endl;
     }
     void close_tunnel(Client & client) {
         log_file_lock.lock();
         log_file << client.uid << ": Tunnel closed" << endl;
         log_file_lock.unlock();
-        cout << client.uid << ": Tunnel closed" << endl;
     }
     void err_unresolvable_method(Client & client) {
         log_file_lock.lock();
         log_file << client.uid << ": ERROR Unresolvable Url" << endl;
         log_file_lock.unlock();
-        cout << client.uid << ": ERROR Unresolvable Url" << endl;
+    }
+    void err_receive_nothing(Client & client) {
+        log_file_lock.lock();
+        log_file << client.uid << ": connection closed" << endl;
+        log_file_lock.unlock();
+    }
+    void err_receive_nothing() {
+        log_file_lock.lock();
+        log_file << "no-id: connection closed from client" << endl;
+        log_file_lock.unlock();
+    }
+    void other_method() {
+        log_file_lock.lock();
+        log_file << "no-id: method other than GET/POST/CONNECT" << endl;
+        log_file_lock.unlock();
     }
 };
 
-Log logfile(string("/home/hx54/568/proxy/log/proxy.log"));
+Log logfile(string("/home/kw284/ece568/HW2/formal/Final Version/proxy/log/proxy.log"));
 
 
 // derived from leetcode LRU cache C++ solusions
@@ -466,9 +463,9 @@ public:
     }
     void move_to_front(unordered_map<string, pair<Response, list<string>::iterator>>::iterator it) {
         string key_url = it->first;
-            mlist.erase(it->second.second);
-            mlist.push_front(key_url);
-            it->second.second = mlist.begin();
+        mlist.erase(it->second.second);
+        mlist.push_front(key_url);
+        it->second.second = mlist.begin();
     }
     void print() {
         cache_lock.lock_shared();
@@ -476,7 +473,6 @@ public:
         cout << "printing cache elements" << endl;
         for (; it != cache.end(); ++it) {
             cout << "url: " << it->first << endl;
-            // cout << "first line: " << it->second.first.line1 << endl;
         }
         cache_lock.unlock_shared();
     }

@@ -14,12 +14,10 @@ int main() {
         struct sockaddr_storage socket_addr;
         socklen_t socket_addr_len = sizeof(socket_addr);
         int client_connection_fd;
-        cout << "ith loop:" << i++ << endl;
         client_connection_fd = accept(server.socket_fd, (struct sockaddr *)&socket_addr, &socket_addr_len);
         char address[80];
         getnameinfo((struct sockaddr *)&socket_addr, socket_addr_len, address, 80, NULL, 0, 0);
         string ipaddr(address);
-        cout << "client fd: " << client_connection_fd << endl;
         // socket_fd will keep 
         if (client_connection_fd == -1) {
             cerr << "Error: cannot accept connection on socket" << endl;

@@ -12,7 +12,7 @@
 #include <thread>
 
 // unordered_map<string, Response> cache;
-Cache cache(3);
+Cache cache(100);
 
 using namespace std;
 
@@ -29,7 +29,6 @@ vector<char> CreateRequest(Response & it, Client & client, bool EtagOrMod){
     vector<char>::iterator it1 = rev.begin() + (pos + 2 - rev.data());
     vector<char> temp(toAdd.begin(), toAdd.end());
     rev.insert(it1, temp.begin(), temp.end());
-    cout << endl << "new validate header: " << rev.data() << endl << endl;
     return rev;
 }
 
@@ -54,18 +53,14 @@ public:
 
         status = getaddrinfo(hostname, port, &host_info, &host_info_list);
         if (status != 0) {
-        cerr << "Error: cannot get address info for host" << endl;
-        cerr << "  (" << hostname << "," << port << ")" << endl;
-        return -1;
+            return -1;
         } //if
 
         socket_fd = socket(host_info_list->ai_family, 
                     host_info_list->ai_socktype, 
                     host_info_list->ai_protocol); // TCP / UDP, default 0 to auto determine protocol based on socktype, 
         if (socket_fd == -1) {
-        cerr << "Error: cannot create socket" << endl;
-        cerr << "  (" << hostname << "," << port << ")" << endl;
-        return -1;
+            return -1;
         } //if
 
         int yes = 1;
@@ -74,16 +69,12 @@ public:
         // bind socket to port we've set in getaddrinfo, and bind to host IP if AI_PASSIVE
         status = bind(socket_fd, host_info_list->ai_addr, host_info_list->ai_addrlen);
         if (status == -1) {
-        cerr << "Error: cannot bind socket" << endl;
-        cerr << "  (" << hostname << "," << port << ")" << endl;
-        return -1;
+            return -1;
         } //if
 
         status = listen(socket_fd, 100);
         if (status == -1) {
-        cerr << "Error: cannot listen on socket" << endl; 
-        cerr << "  (" << hostname << "," << port << ")" << endl;
-        return -1;
+            return -1;
         } //if
 
         return socket_fd;
@@ -110,8 +101,6 @@ public:
         host_info.ai_socktype = SOCK_STREAM;
         status = getaddrinfo(hostname.c_str(), port, &host_info, &host_info_list);
         if (status != 0) {
-            cerr << "Error: cannot get address info for host" << endl;
-            cerr << "  (" << hostname << "," << port << ")" << endl;
             return -1;
         } //if
 
@@ -119,13 +108,9 @@ public:
                     host_info_list->ai_socktype, 
                     host_info_list->ai_protocol);
         if (socket_fd == -1) {
-            cerr << "Error: cannot create socket" << endl;
-            cerr << "  (" << hostname << "," << port << ")" << endl;
             return -1;
         } //if
-        
-        cout << "Connecting to " << hostname << " on port " << port << "..." << endl;
-        
+                
         while(true){
             status = connect(socket_fd, host_info_list->ai_addr, host_info_list->ai_addrlen);
             if (status != -1) {
@@ -139,7 +124,6 @@ public:
 };
 
 vector<char> recvHeader(int fd){
-    // cout << "in receivr header" << endl;
     vector<char> res;
     int flag = 0;
     char buffer[1];
@@ -147,7 +131,6 @@ vector<char> recvHeader(int fd){
     while(true){
         memset(buffer, 0, 1);
         if (recv(fd, buffer, 1, 0) == 0){
-            cout << "receive return 0" << endl;
             res.resize(0, 0);
             return res;
         }
@@ -181,12 +164,10 @@ vector<char> recvHeader(int fd){
 }
 
 vector<char> parseHeader(int fd, vector<char> & client_request_header) {
-    // cout << "in parse header" << endl;
     vector<char> body;
     char * pos1 = strstr(client_request_header.data(), "Content-Length:");
     char * pos2 = strstr(client_request_header.data(), "Transfer-Encoding:");
     if (pos2 != NULL){
-        // cout << "transfer encoding loop" << endl;
         client_request_header.pop_back();
         return recvHeader(fd);
     }
@@ -199,12 +180,10 @@ vector<char> parseHeader(int fd, vector<char> & client_request_header) {
         vector<char> buf(num+1, 0);
         if(num != 0){
             recv(fd, buf.data(), num, MSG_WAITALL);
-            // cout << "actual body " << buf.data() << endl;
             client_request_header.pop_back();
         }
         return buf;
     }
-    // cout << "no header" << endl;
     return body;
 }
 
@@ -213,11 +192,8 @@ void sendAll(int fd, vector<char> & target, int size){
     while(sum != size){
         int i = send(fd, target.data() + sum, size-sum, 0);
         if (i == -1) {
-            cout << "error in send" << endl;
             break;
         }
-        // cout << "in send all: " << endl;
-        // cout << i << endl;
         sum += i;
     }
 }
@@ -228,20 +204,15 @@ void sendConnect(int fd, const char * buffer, int size){
         int i = send(fd, buffer, size - sum, 0);
         
         if (i == -1) {
-            cout << "error in send" << endl;
             break;
         }
-        // cout << "in send all: " << endl;
-        // cout << i << endl;
         sum += i;
     }
-    // cout << "exit send all" << endl;
 }
 
 void send200(int fd, Client & client){
     string temp;
     temp = client.httpVersion + " 200 Connection Established\r\n\r\n";
-    cout << "send 200 message:" << temp << endl;
     logfile.responding_code(client, temp.substr(0, temp.length() - 4));
     sendConnect(fd, temp.c_str(), temp.size());
 }
@@ -249,21 +220,17 @@ void send200(int fd, Client & client){
 void send504(int fd, Client & client){
     string temp;
     temp = client.httpVersion + " 504 Gateway Timeout\r\n\r\n";
-    cout << "send 504 message:" << temp << endl;
     logfile.responding_code(client, temp.substr(0, temp.length() - 4));
     sendConnect(fd, temp.c_str(), temp.size());
 }
 
 void sendRevalidation(int server_fd, Client & client, Response & it) {
-    // cout << "need revalidation" << endl;
     logfile.validate(client);
     if (!it.etag.empty()) {
-        // cout << "add etag" << endl;
         vector<char> newReq = CreateRequest(it, client, true);
         sendAll(server_fd, newReq, newReq.size());
     }
     else if (!it.last_modified.empty()) {
-        // cout << "add last mod" << endl;
         vector<char> newReq = CreateRequest(it, client, false);
         sendAll(server_fd, newReq, newReq.size());
     }
@@ -298,13 +265,10 @@ void MethodCon(int client_fd, int server_fd, Client & client){
     FD_SET(client_fd, &rfds);
     FD_SET(server_fd, &rfds);
     int fd_max = max(client_fd, server_fd);
-    // cout << "client_fd: " << client_fd << endl;
-    // cout << "server_fd: " << server_fd << endl;
     char buffer[4096];
     int exitFlag = 0;
     while(true){
         sub = rfds;
-        // cout << "in select" << endl;
         int status = select(fd_max + 1, &sub, NULL, NULL, NULL);
         if (status == -1){
             cerr << "select error" << endl;
@@ -315,7 +279,6 @@ void MethodCon(int client_fd, int server_fd, Client & client){
                     vector<char> message(1024, 0);
                     status = recv(i, message.data(), 1024, 0);
                     if (status == 0 || status == -1){
-                        cout << "exit flag is set to 1" << endl;
                         exitFlag = 1;
                         break;
                     }
@@ -329,50 +292,12 @@ void MethodCon(int client_fd, int server_fd, Client & client){
                 }
             }
             if (exitFlag == 1){
-                cout << "exit flag == 1" << endl;
                 logfile.close_tunnel(client);
                 break;
             }
         }
     }
-    cout << "exit select" << endl;
 }
-
-// Response redirection(Client & client, Response & response, int server_fd) {
-//     Response * target = &response;
-//     while (true){
-//         string temp = client.method + " " + target->url + target->location;
-//         cout << "request before change: \n" << client.content.data() << endl;
-//         cout << "location:\n" << response.location << endl;
-//         int i = 0;
-//         while (client.content[1] != 'H' || client.content[2] != 'T' || 
-//                client.content[3] != 'T' || client.content[4] != 'P') {
-//             // cout << client.content.data() << endl;
-//             client.content.erase(client.content.begin());
-//             i++;
-//         }
-//         cout << "after change: \n" << client.content.data() << "loop" << i << endl;
-//         vector<char> tmp(temp.begin(), temp.end());
-//         client.content.insert(client.content.begin(), tmp.begin(), tmp.end());
-//         client.url = target->location;
-//         cout << "new url after 301: " << client.content.data() << endl;
-//         sendOriginServer(server_fd, client);
-//         vector<char> response_full = recvHeader(server_fd);
-//         vector<char> response_body = parseHeader(server_fd, response_full);
-//         if (response_body.size() != 0) {
-//             response_full.insert(response_full.end(), response_body.begin(), response_body.end());
-//         }
-//         Response response_class(response_full, client.url);
-//         if (response_class.status == "301") {
-//             target = &response_class;
-//             continue;
-//         }
-//         else {
-//             return response_class;
-//         }
-//     }
-// }
-
 
 void MethodPost(int server_fd, int client_fd, Client & client){    
     logfile.re_request(client);
@@ -391,10 +316,8 @@ void MethodPost(int server_fd, int client_fd, Client & client){
 void MethodGet(int client_fd, int server_fd, Client & client) {
     Response *it = cache.find(client.url);
     
-    cout << "in get method" << endl;
     if (it != NULL) {
-	cout << "cache found" << it->url << endl;
-	it->age += time(0) - it->receive;
+    	it->age += time(0) - it->receive;
     }
     if (client.no_store == true || 
         it == NULL) {
@@ -481,40 +404,25 @@ void MethodGet(int client_fd, int server_fd, Client & client) {
 
     // sendAll(server_fd, client.content, client.content.size());
     vector<char> response = recvHeader(server_fd);
-    cout << response.data() << endl;
+    if (response.size() == 0) {
+        // log it.
+        logfile.err_receive_nothing(client);
+        return;
+    }
     vector<char> response_body = parseHeader(server_fd, response);
-    cout << response_body.size() << endl;
     if (response_body.size() != 0) {
         response.insert(response.end(), response_body.begin(), response_body.end());
     }
-    //vector<char> response = recvAll(server_fd);
-    cout << "response: " << endl;
-    cout << response.data() << endl;
     // Cache the response
     Response response_class(response, client.url);
-    // if (response_class.status == "301") {
-    //     // enter a function
-    //     response_class = redirection(client, response_class, server_fd);
-    // }
-
-    // cout << "url: " << response_class.url << endl << "status: " << response_class.status << "if cache: " << response_class.if_cache << endl
-    //     << "expiration_time: " << response_class.expiration_time << endl << "if validate: " << response_class.if_validate
-    //     << endl << "age: " << response_class.age << endl << "last_modified: " << response_class.last_modified << endl
-    //     << "etag: " << response_class.etag << endl << response_class.content.data() << endl;
+    
     logfile.receive_response(client, response_class);
     
     // unordered_map<string, Response>::iterator it_incache = cache.find(client.url);
     if (response_class.status == "304" && it != NULL){
-        cout << "304 received, return cached content" << endl;
-        cout << it->url << endl;
         sendAll(client_fd, it->content, it->content.size());
     } else if (response_class.status == "200") {
         if (response_class.if_cache) {
-            // if (it != NULL) {
-            //     cout << "removed stale cache" << endl;
-            //     cache.erase(response_class.url);
-            // }
-            cout << "saved response in cache" << endl;
             cache.insert(response_class.url, response_class);
             if (response_class.if_nocache) {
                 logfile.need_revalidate(client);
@@ -530,42 +438,25 @@ void MethodGet(int client_fd, int server_fd, Client & client) {
     }
     logfile.responding(client, response_class);
 
-    cache.print();
+    // cache.print(); // test whether the cache contains anything
 }
 
 
 void handleRequest(int client_connection_fd, string ipaddr) {
     vector<char> client_request = recvHeader(client_connection_fd);
     if(client_request.size() == 0){
-        cout << "strange behavior of new accept" << endl;
-        cout << "thread ends: " << client_connection_fd << endl;
+        logfile.err_receive_nothing();
         return;
     }
-    // cout << "client request header: " << endl;
-    // cout << client_request.data() << endl;
-
     vector<char> client_request_body = parseHeader(client_connection_fd, client_request);
-    cout << "body size: " << client_request_body.size() << endl;
     if (client_request_body.size() != 0) {
-        cout << "to insert body" << endl;
-        // client_request.pop_back();
         client_request.insert(client_request.end(), client_request_body.begin(), client_request_body.end());
     }
-    cout << "client full request: " << endl;
-    cout << client_request.data() << endl;
 
     Client client(client_request, ipaddr); // pass request header + body
     
     logfile.request_from_client(client);
     
-    // cout << "port: " << client.port << endl;
-    // cout << "method: " << client.method << endl << "host: " << client.host << endl << "url: " << client.url << endl << "body: " << client.content.data() << endl;
-    // cout << "HTTP: " << client.httpVersion << endl;
-    // cout << "Cache Control fields\n";
-    // cout << "no-store: " << client.no_store << endl << "only_if_cached: " << client.only_if_cached << endl;
-    // cout << "no_cache: " << client.no_cache << endl << "if_max_stale: " << client.if_max_stale << endl << "if_max_stale_has_value: " << client.if_max_stale_has_value << endl;
-    // cout << "max-stale: " << client.max_stale << endl << "if_max_age: " << client.if_max_age << endl << "if_min_fresh: " << client.if_min_fresh << endl;
-    // cout << "min-fresh: " << client.min_fresh << endl;
     ClientSocket client_socket(client.host, client.port);
     
     if (client_socket.init_socket() == -1) {
@@ -585,10 +476,6 @@ void handleRequest(int client_connection_fd, string ipaddr) {
         cout << "received unresolvable http method: " << client.method << endl;
     }
     
-    // cout << "before free" << endl;
     freeaddrinfo(client_socket.host_info_list);
-    // cout << "after first free" << endl;
     close(client_socket.socket_fd);
-    // cout << "after second free" << endl;
-    cout << "thread ends: " << client_connection_fd << endl;
 }
